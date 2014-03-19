@@ -1,0 +1,80 @@
+    /* Configuration Setting: 433MHz, CLK 5MHz, 11,5pf Kapaz., +/-60kHz */
+    sendbyte(0b10001110);    sendbyte(0b01100000); 
+0x8E60
+    /* Frequency Setting: eingestellter Kanal*/
+    uc_frequ[1]|=0b10100000;
+0xA0xx
+    /* Output Power Command: Max Power */
+    sendbyte(0b10110000);
+0xB0
+    /* Data Rate Command: 2400 bit/s */
+    sendbyte(0b11001000);    sendbyte(0b10001111); 
+0xC88F
+    /* Low Batt + Sync Command: enable Sync Circuit */
+    sendbyte(0b11000010);    sendbyte(0b00100000); 
+0xC220
+    /* PLL Setting Command: 0xD240 up to 19,2kbit/s*/
+    sendbyte(0b11010010);    sendbyte(0b01000000); 
+0xD240
+    /* Power Managment Command= Enable Clock; disable Synthesizer; disable pow. Ampl. */
+    sendbyte(0b11000000);    sendbyte(0b00100000); 
+0xC020
+
+Main program checks for new values, sends them, and reinitializes the entire Tx chain if the transmission takes too long to complete.
+
+    /* Power Managment Command= Enable Clock; enable Synthesizer; enable pow. Ampl. */
+    sendbyte(0b11000000);    sendbyte(0b00111000); 
+0xC034
+    /*Sender Start Byte senden*/
+    sendbyte(0b11000110);
+0xC6
+
+He appears to start transmission immediately after turning on the Synthesizer, which normally needs 250uS. The clock is already on.
+
+Transmission of data is sent one bit at a time and paced by interrupt (on INT0 from nIRQ presumably).
+
+    /* Power Managment Command= Enable Clock; disable Synthesizer; disable pow. Ampl. */
+    sendbyte(0b11000000);    sendbyte(0b00100000); 
+0xC020
+--------------------------------------------------------------------------------------------------------------------------
+Rx
+    /* Frequency Setting: 434MHz (je nach Kanal) */
+    uc_frequ[1]|=0b10100000;
+0xA015
+    
+    /* Configuration Setting: 433MHz, CLK on, 11,5pf Kapaz., 67kHz */
+    sendbyte(0b10001001);    sendbyte(0b01101100); 
+0x8A6C
+    
+    /* Low Batt Clock Divider Command: clock 5MHz */
+    sendbyte(0b11000010);    sendbyte(0b11000000); 
+0xC2C0
+    
+    /* Receiver Setting Command: VDI= Digital RSSI Out, -103dB, receiver disabled */
+    sendbyte(0b11000000);    sendbyte(0b10000000);
+0xC080
+    
+    /* Receiver Setting Command: VDI= Digital RSSI Out, -103dB receiver enabled */
+    sendbyte(0b11000000);    sendbyte(0b10000001);
+0xC081
+       
+    /* FIFO Command: Enable FIFO, IT level=8, Sync. Patt + VDI, stop FIFO  */
+    sendbyte(0b11001110);    sendbyte(0b10001001);
+0xCE89
+    
+    /* FIFO Command: Enable FIFO, IT level=8, Sync. Patt + VDI, start FIFO  */
+    sendbyte(0b11001110);    sendbyte(0b10001011);
+0xCE8B
+    
+    /* Data Filter Command:  */
+    sendbyte(0b11000100);    sendbyte(0b10101100); 
+0xC4AC    
+    
+    /* Data Rate Command: 2400 bit/s */
+    sendbyte(0b11001000);    sendbyte(0b10010001);
+0xC891    
+    
+    /* AFC Command: Enable AFC, +3/-4, offset at VDI high */
+    sendbyte(0b11000110);    sendbyte(0b10111111); 
+0xC6BF       
+
