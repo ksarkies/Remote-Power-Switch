@@ -1,0 +1,4 @@
+elements-dir footprints
+schematics remote-transmitter.sch
+output-name remote-transmitter
+

@@ -27,6 +27,8 @@ made until a preset delay has elapsed following the last reception.
 A second prototype is planned to use transceiver modules, the hardware doubling
 as a serial communications system between two base stations.
 
+More information will be posted on www.jiggerjuice.info
+
 K. Sarkies
 19 March 2014
 

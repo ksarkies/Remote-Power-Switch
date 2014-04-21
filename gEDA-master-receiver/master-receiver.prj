@@ -1,0 +1,4 @@
+elements-dir footprints
+schematics master-receiver-mc.sch master-receiver-sw.sch
+output-name master-receiver
+
