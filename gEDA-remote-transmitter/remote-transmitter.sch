@@ -27,7 +27,7 @@ device=CONNECTOR_6
 T 48750 49500 5 10 0 0 270 6 1
 footprint=SIP6N
 T 47400 49800 5 10 1 1 0 0 1
-refdes=Program
+refdes=Conn1
 }
 N 46900 45600 49400 45600 4
 N 46900 45800 49400 45800 4
@@ -133,7 +133,7 @@ footprint=Keypad-3x4
 C 42600 49200 1 0 0 connector2-2.sym
 {
 T 43300 50500 5 10 1 1 0 6 1
-refdes=Power
+refdes=Conn2
 T 42900 50450 5 10 0 0 0 0 1
 device=CONNECTOR_2
 T 42900 50650 5 10 0 0 0 0 1
@@ -169,7 +169,7 @@ footprint=ACY200
 C 45500 49600 1 180 0 gnd-1.sym
 T 51500 41000 9 10 1 0 0 0 1
 Remote Power Switch Remote Transmitter
-T 54200 40200 9 10 1 0 0 0 1
+T 54200 40100 9 10 1 0 0 0 1
 K. Sarkies 19/04/2014
 T 50200 40200 9 10 1 0 0 0 1
 1
@@ -184,3 +184,5 @@ device=ATtiny2313
 T 44700 48150 5 10 0 0 0 0 1
 footprint=DIP20
 }
+T 55000 40400 9 10 1 0 0 0 1
+0.0
