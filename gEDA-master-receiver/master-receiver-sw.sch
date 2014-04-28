@@ -793,12 +793,12 @@ device=CONNECTOR_2
 T 40900 43750 5 10 0 0 180 0 1
 footprint=terminal-block-2
 T 40400 45500 5 10 1 1 180 6 1
-refdes=PWR_HIGH
+refdes=CONN17
 }
 C 46300 50100 1 180 0 connector2-2.sym
 {
 T 45500 50400 5 10 1 1 180 6 1
-refdes=PWR_LOW
+refdes=CONN16
 T 46000 48850 5 10 0 0 180 0 1
 device=CONNECTOR_2
 T 46000 48650 5 10 0 0 180 0 1
