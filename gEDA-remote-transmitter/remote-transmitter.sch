@@ -1,4 +1,4 @@
-v 20121123 2
+v 20130925 2
 C 40000 40000 0 0 0 title-B.sym
 C 41600 47600 1 90 0 vcc-1.sym
 C 41300 47500 1 270 0 gnd-1.sym
@@ -128,7 +128,7 @@ refdes=KEYPAD
 T 49250 46600 5 10 0 0 90 0 1
 device=Keypad-3x4
 T 49050 45800 5 10 0 0 90 0 1
-footprint=Keypad-3x4
+footprint=Keypad-3x4-short
 }
 C 42600 49200 1 0 0 connector2-2.sym
 {
