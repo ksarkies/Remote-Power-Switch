@@ -4,7 +4,8 @@ Remote Power Switch Rx PCB
 This board has a dual purpose; serving as a receiver for the power switch and as
 an RF to serial converter. The board is designed to allow cutting to separate
 the microcontroller and the switch parts. Provision for a ribbon cable
-connection between the two is given so that different boards may be substituted.
+connection between the two is given so that boards may be interchanged with
+different types.
 
 The switches are P-type MOSFETs with low speed BJT-resistor drivers for
 simplicity. The microcontroller is a low cost ATtiny2313 or pin compatible
