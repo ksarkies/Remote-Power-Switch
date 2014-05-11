@@ -2,8 +2,9 @@ Remote Power Switch Tx PCB
 --------------------------
 
 This board is designed to fit into a 65mm by 130mm hand case, purchased from
-Jaycar, with a 12 digit keypad. It has a microcontroller in sleep mode that
-is woken up when a keypress is activated.
+Jaycar, with a 12 digit keypad. It has an Atmel microcontroller in sleep mode
+that is woken up when a keypress is activated. An RFM02 Hope RF 433MHz
+transmitter unit is also in sleep mode until needed.
 
 The keypad is of unknown manufacturer, supplied by Futurlec. It has a 7 pin
 connector underneath, below the top row of buttons. The board will 
@@ -18,7 +19,8 @@ The row and column ports are set with rows with high-level pullup and columns
 set to zero so that a connection between any row and column will result in the
 interrupt line being pulled low via the diode network.
 
-The unit has survived for over 12 months without a change of batteries.
+The prototype units have survived for over 12 months without a change of
+batteries.
 
 More information will be posted on www.jiggerjuice.info
 
