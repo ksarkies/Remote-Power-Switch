@@ -1,7 +1,7 @@
 G04 start of page 7 for group -4063 idx -4063 *
 G04 Title: (unknown), componentmask *
 G04 Creator: pcb 20110918 *
-G04 CreationDate: Sun 11 May 2014 09:16:45 GMT UTC *
+G04 CreationDate: Mon 12 May 2014 07:18:58 GMT UTC *
 G04 For: ksarkies *
 G04 Format: Gerber/RS-274X *
 G04 PCB-Dimensions: 390000 390000 *
@@ -11,7 +11,7 @@ G04 PCB-Coordinate-Origin: lower left *
 %LNTOPMASK*%
 %ADD116R,0.0746X0.0746*%
 %ADD115R,0.2478X0.2478*%
-%ADD114C,0.0860*%
+%ADD114C,0.1110*%
 %ADD113C,0.1000*%
 %ADD112C,0.0700*%
 %ADD111C,0.0740*%

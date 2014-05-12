@@ -6,7 +6,7 @@ FileVersion[20070407]
 PCB["" 390000 390000]
 
 Grid[100.0 0 0 0]
-Cursor[7600 41600 0.000000]
+Cursor[43400 119100 0.000000]
 PolyArea[200000000.000000]
 Thermal[0.500000]
 DRC[600 600 600 600 1500 600]
@@ -786,7 +786,7 @@ Symbol['~' 1200]
 	SymbolLine[1500 3500 2000 3500 800]
 	SymbolLine[2000 3500 2500 3000 800]
 )
-Attribute("PCB::grid::unit" "mm")
+Attribute("PCB::grid::unit" "mil")
 Via[239000 272500 3600 2000 0 2000 "" ""]
 Via[242000 266000 3600 2000 0 2000 "" ""]
 Via[304500 197000 3600 2000 0 2000 "" ""]
@@ -1758,9 +1758,9 @@ Element["" "SIP2N" "J4" "unknown" 13000 348000 -10500 2500 1 100 ""]
 
 Element["" "Female_Barrel_DC0202" "CONN13" "unknown" 335000 360000 22500 -2500 3 100 ""]
 (
-	Pin[0 -24000 8002 1200 8602 4802 "" "3" ""]
-	Pin[19000 -11900 8002 1200 8602 4802 "2" "2" ""]
-	Pin[0 0 8002 1200 8602 4802 "1" "1" ""]
+	Pin[0 -24000 10502 1200 11102 6802 "" "3" ""]
+	Pin[19000 -11900 10502 1200 11102 6802 "2" "2" ""]
+	Pin[0 0 10502 1200 11102 6802 "1" "1" ""]
 	ElementLine [17000 -27200 17000 29300 600]
 	ElementLine [-17000 -27200 17000 -27200 600]
 	ElementLine [-17000 -27200 -17000 29300 600]
@@ -2643,12 +2643,6 @@ Layer(9 "silk")
 )
 Layer(10 "silk")
 (
-	Text[92500 232500 0 96 "Remote Power Switch" "clearline"]
-	Text[97500 240000 0 96 "Master Receiver" "clearline"]
-	Text[87500 247500 0 96 "K. W. Sarkies" "clearline"]
-	Text[127500 247500 0 96 "30/04/2014" "clearline"]
-	Text[85000 255000 0 96 "Version 0.0" "clearline"]
-	Text[117500 255000 0 96 "Licence cc-by-sa" "clearline"]
 	Text[362400 120200 0 196 "+" "clearline"]
 	Text[362500 159800 0 206 "+" "clearline"]
 	Text[358400 187500 1 196 "-" "clearline"]
@@ -2669,6 +2663,13 @@ Layer(10 "silk")
 	Text[21800 351600 0 120 "R" "clearline"]
 	Text[38500 247900 0 120 "R" "clearline"]
 	Text[49100 247700 0 120 "X" "clearline"]
+	Text[93200 224200 0 96 "Remote Power Switch" "clearline"]
+	Text[98200 231700 0 96 "Master Receiver" "clearline"]
+	Text[88200 239200 0 96 "K. W. Sarkies" "clearline"]
+	Text[85700 246700 0 96 "Version 0.0" "clearline"]
+	Text[118200 246700 0 96 "Licence cc-by-sa" "clearline"]
+	Text[95000 254200 0 100 "www.jiggerjuice.info" "clearline"]
+	Text[125200 239200 0 100 "12/05/2014" "clearline"]
 	Polygon("pin,via")
 	(
 		[75000 235000] [74917 235032] [74870 235108] [74821 235347] [74784 235569] 
