@@ -25,7 +25,6 @@
 
 # MCU name
 MCU = attiny2313
-//MCU = atmega48
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex

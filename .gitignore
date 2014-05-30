@@ -3,6 +3,10 @@
 *.bin
 *.hex
 *.list
+*.lss
+*.lst
+*.eep
+*.sym
 *.srec
 *.a
 *.elf
