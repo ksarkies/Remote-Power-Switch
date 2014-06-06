@@ -28,7 +28,9 @@ in the interrupt line being pulled low via the diode network.
 The prototype units have survived for over 12 months without a change of
 batteries.
 
-More information is posted on www.jiggerjuice.info
+More information has been posted on:
+
+www.jiggerjuice.info/electronics/projects/remotecontrol/remote-control-switch.html
 
 K. Sarkies
 30 May 2014
