@@ -290,7 +290,7 @@ uint16_t writeCMD(uint16_t command, uint8_t n)
 /****************************************************************************/
 /** @brief Start Transmission of Data to the RFM02 over SDI
   
-The Power Management is set for manual startup of PLL, clock and power amplifier.
+Power Management is set for manual startup of PLL, clock and power amplifier.
 A Data Rate command sets up the desired data rate.
 TX Bit synchronization is set.
 This is followed by a Data Transmit command sent over the SDI pin.
@@ -383,6 +383,7 @@ Return:         RF02 status register byte.
 void stopDataTx()
 {
 	sbi(CS_PORT,nSEL);							/* Set CS to finish Sending Data Block */
+    _delay_ms(1);
 	writeCMD(POWERMANAGE, 16);                  /* Turn off power to all devices */
 //    writeCMD(SLEEP,16);                         /* Send sleep command */
 }
