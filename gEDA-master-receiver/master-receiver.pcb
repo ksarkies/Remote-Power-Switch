@@ -5,8 +5,8 @@ FileVersion[20070407]
 
 PCB["" 390000 390000]
 
-Grid[1000.0 0 0 0]
-Cursor[28000 56000 0.000000]
+Grid[100.0 0 0 0]
+Cursor[130400 306800 0.000000]
 PolyArea[200000000.000000]
 Thermal[0.500000]
 DRC[600 600 600 600 1500 600]
@@ -1975,6 +1975,19 @@ Element["" "Female_Barrel_DC0202" "CONN13" "unknown" 335000 360000 25000 1000 3 
 	ElementArc [4000 -10000 1000 1000 0 90 600]
 
 	)
+
+Element["" "R025" "R23" "10K" 61064 329864 3536 3536 0 100 ""]
+(
+	Pin[0 0 6800 3000 7400 3800 "1" "1" "square,edge2"]
+	Pin[-28284 28284 6800 3000 7400 3800 "2" "2" "edge2"]
+	ElementLine [-3536 10607 -17678 24749 2000]
+	ElementLine [-17678 24749 -24749 17678 2000]
+	ElementLine [-24749 17678 -10607 3536 2000]
+	ElementLine [-10607 3536 -3536 10607 2000]
+	ElementLine [0 0 -7071 7071 2000]
+	ElementLine [-21213 21213 -28284 28284 2000]
+
+	)
 Layer(1 "top")
 (
 	Line[341000 346000 334000 360100 3000 2000 "clearline,auto"]
@@ -2011,7 +2024,7 @@ Layer(1 "top")
 	Line[334000 360100 334000 360700 1000 2000 "clearline,auto"]
 	Line[115000 280000 132000 295500 1000 2000 "clearline,auto"]
 	Line[249500 362000 226500 352500 5000 2000 "clearline,auto"]
-	Line[33500 275500 33600 363400 1000 2000 "clearline,auto"]
+	Line[33500 275500 33400 338500 1000 2000 "clearline,auto"]
 	Line[159600 311400 151200 322100 1000 2000 "clearline,auto"]
 	Line[245500 287500 237000 295500 1000 2000 "clearline"]
 	Line[250000 254000 250000 287000 1000 2000 "clearline"]
@@ -2058,8 +2071,6 @@ Layer(1 "top")
 	Line[147500 359500 137500 349000 1000 2000 "clearline"]
 	Line[137500 349000 102000 349000 1000 2000 "clearline"]
 	Line[102000 349000 90500 360500 1000 2000 "clearline"]
-	Line[90500 360500 41400 360500 1000 2000 "clearline"]
-	Line[33600 363400 91000 363500 1000 2000 "clearline"]
 	Line[91000 363500 103000 351500 1000 2000 "clearline"]
 	Line[103000 351500 135500 351500 1000 2000 "clearline"]
 	Line[135500 351500 147000 363500 1000 2000 "clearline"]
@@ -2356,9 +2367,15 @@ Layer(1 "top")
 	Line[53000 261000 58000 266000 1000 2000 "clearline"]
 	Line[58000 266000 58000 316000 1000 2000 "clearline"]
 	Line[77400 164900 10000 145100 11000 2000 "clearline"]
-	Line[41500 275500 41400 360500 1000 2000 "clearline,auto"]
 	Line[335000 336000 294800 361300 5000 2000 "clearline,auto,rubberend"]
 	Line[383000 278000 375000 270000 3000 2000 "clearline"]
+	Line[41500 275500 41400 339100 1000 2000 "clearline,auto"]
+	Line[90700 360500 62600 360500 1000 2000 "clearline"]
+	Line[62600 360500 41500 339400 1000 2000 "clearline"]
+	Line[91400 363600 58600 363600 1000 2000 "clearline"]
+	Line[58600 363600 33300 338300 1000 2000 "clearline"]
+	Line[32800 358900 32800 356900 1000 2000 "clearline"]
+	Line[32800 356900 24100 348200 1000 2000 "clearline"]
 )
 Layer(2 "ground")
 (
@@ -2961,6 +2978,7 @@ NetList()
 	Net("unnamed_net27" "(unknown)")
 	(
 		Connect("J3-1")
+		Connect("R23-2")
 		Connect("RF1-8")
 	)
 	Net("unnamed_net28" "(unknown)")
@@ -3178,6 +3196,7 @@ NetList()
 		Connect("CONN15-1")
 		Connect("R21-1")
 		Connect("R22-1")
+		Connect("R23-1")
 		Connect("RF1-2")
 		Connect("U1-7")
 		Connect("U1-20")
