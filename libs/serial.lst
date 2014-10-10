@@ -1,0 +1,194 @@
+   1               		.file	"serial.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 103               	.global	uartInit
+ 105               	uartInit:
+ 106               		.stabd	46,0,0
+   1:../libs/serial.c **** /*  Serial routines for the AVR UART */
+   2:../libs/serial.c **** 
+   3:../libs/serial.c **** /****************************************************************************
+   4:../libs/serial.c ****  *   Copyright (C) 2013 by Ken Sarkies ksarkies@internode.on.net            *
+   5:../libs/serial.c ****  *                                                                          *
+   6:../libs/serial.c ****  *   This file is part of XBee-Acquisition                                  *
+   7:../libs/serial.c ****  *                                                                          *
+   8:../libs/serial.c ****  * Licensed under the Apache License, Version 2.0 (the "License");          *
+   9:../libs/serial.c ****  * you may not use this file except in compliance with the License.         *
+  10:../libs/serial.c ****  * You may obtain a copy of the License at                                  *
+  11:../libs/serial.c ****  *                                                                          *
+  12:../libs/serial.c ****  *     http://www.apache.org/licenses/LICENSE-2.0                           *
+  13:../libs/serial.c ****  *                                                                          *
+  14:../libs/serial.c ****  * Unless required by applicable law or agreed to in writing, software      *
+  15:../libs/serial.c ****  * distributed under the License is distributed on an "AS IS" BASIS,        *
+  16:../libs/serial.c ****  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. *
+  17:../libs/serial.c ****  * See the License for the specific language governing permissions and      *
+  18:../libs/serial.c ****  * limitations under the License.                                           *
+  19:../libs/serial.c ****  ***************************************************************************/
+  20:../libs/serial.c **** 
+  21:../libs/serial.c **** #include <avr/io.h>
+  22:../libs/serial.c **** #include "defines-M48.h"
+  23:../libs/serial.c **** #include "serial.h"
+  24:../libs/serial.c **** 
+  25:../libs/serial.c **** /* Convenience macros (we don't use them all) */
+  26:../libs/serial.c **** #define  _BV(bit) (1 << (bit))
+  27:../libs/serial.c **** #define  inb(sfr) _SFR_BYTE(sfr)
+  28:../libs/serial.c **** #define  inw(sfr) _SFR_WORD(sfr)
+  29:../libs/serial.c **** #define  outb(sfr, val) (_SFR_BYTE(sfr) = (val))
+  30:../libs/serial.c **** #define  outw(sfr, val) (_SFR_WORD(sfr) = (val))
+  31:../libs/serial.c **** #define  cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
+  32:../libs/serial.c **** #define  sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
+  33:../libs/serial.c **** #define  high(x) ((uint8_t) (x >> 8) & 0xFF)
+  34:../libs/serial.c **** #define  low(x) ((uint8_t) (x & 0xFF))
+  35:../libs/serial.c **** 
+  36:../libs/serial.c **** /*-----------------------------------------------------------------------------*/
+  37:../libs/serial.c **** /* Initialise the UART, setting baudrate, Rx/Tx enables, and flow controls
+  38:../libs/serial.c **** 
+  39:../libs/serial.c **** Baud rate is derived from the header call to setbaud.h.
+  40:../libs/serial.c **** UBRRL_VALUE and UBRRH_VALUE and USE_2X are returned, the latter requires the
+  41:../libs/serial.c **** U2X bit to be set in UCSRA to force a double baud rate clock.
+  42:../libs/serial.c **** */
+  43:../libs/serial.c **** 
+  44:../libs/serial.c **** void uartInit(void)
+  45:../libs/serial.c **** {
+ 108               	.LM0:
+ 109               	.LFBB1:
+ 110               	/* prologue: function */
+ 111               	/* frame size = 0 */
+ 112               	/* stack size = 0 */
+ 113               	.L__stack_usage = 0
+  46:../libs/serial.c ****     BAUD_RATE_LOW_REG = UBRRL_VALUE;
+ 115               	.LM1:
+ 116 0000 8CE0      		ldi r24,lo8(12)
+ 117 0002 8093 C400 		sts 196,r24
+  47:../libs/serial.c ****     BAUD_RATE_HIGH_REG = UBRRH_VALUE;
+ 119               	.LM2:
+ 120 0006 1092 C500 		sts 197,__zero_reg__
+  48:../libs/serial.c **** #if USE_2X
+  49:../libs/serial.c ****     sbi(UART_STATUS_REG,DOUBLE_RATE);
+  50:../libs/serial.c **** #else
+  51:../libs/serial.c ****     cbi(UART_STATUS_REG,DOUBLE_RATE);
+ 122               	.LM3:
+ 123 000a E0EC      		ldi r30,lo8(-64)
+ 124 000c F0E0      		ldi r31,0
+ 125 000e 8081      		ld r24,Z
+ 126 0010 8D7F      		andi r24,lo8(-3)
+ 127 0012 8083      		st Z,r24
+  52:../libs/serial.c **** #endif
+  53:../libs/serial.c ****     UART_FORMAT_REG = (3 << FRAME_SIZE);                // Set 8 bit frames
+ 129               	.LM4:
+ 130 0014 86E0      		ldi r24,lo8(6)
+ 131 0016 8093 C200 		sts 194,r24
+  54:../libs/serial.c ****     UART_CONTROL_REG |= _BV(ENABLE_RECEIVER_BIT) |
+ 133               	.LM5:
+ 134 001a E1EC      		ldi r30,lo8(-63)
+ 135 001c F0E0      		ldi r31,0
+ 136 001e 8081      		ld r24,Z
+ 137 0020 8861      		ori r24,lo8(24)
+ 138 0022 8083      		st Z,r24
+ 139 0024 0895      		ret
+ 141               	.Lscope1:
+ 143               		.stabd	78,0,0
+ 146               	.global	sendch
+ 148               	sendch:
+ 149               		.stabd	46,0,0
+  55:../libs/serial.c ****                         _BV(ENABLE_TRANSMITTER_BIT);    // enable receive and transmit 
+  56:../libs/serial.c **** #ifdef USE_HARDWARE_FLOW
+  57:../libs/serial.c ****     cbi(UART_CTS_PORT_DIR,UART_CTS_PIN);                // Set flow control pins CTS input
+  58:../libs/serial.c ****     sbi(UART_RTS_PORT_DIR,UART_RTS_PIN);                // RTS output
+  59:../libs/serial.c ****     cbi(UART_RTS_PORT,UART_RTS_PIN);                    // RTS cleared to enable
+  60:../libs/serial.c **** #endif
+  61:../libs/serial.c **** }
+  62:../libs/serial.c **** 
+  63:../libs/serial.c **** /*-----------------------------------------------------------------------------*/
+  64:../libs/serial.c **** /* Send a character when the Tx is ready
+  65:../libs/serial.c **** 
+  66:../libs/serial.c **** The function waits until CTS is asserted low then waits until the UART indicates
+  67:../libs/serial.c **** that the character has been sent.
+  68:../libs/serial.c **** */
+  69:../libs/serial.c **** 
+  70:../libs/serial.c **** void sendch(unsigned char c)
+  71:../libs/serial.c **** {
+ 151               	.LM6:
+ 152               	.LFBB2:
+ 153               	/* prologue: function */
+ 154               	/* frame size = 0 */
+ 155               	/* stack size = 0 */
+ 156               	.L__stack_usage = 0
+  72:../libs/serial.c **** #ifdef USE_HARDWARE_FLOW
+  73:../libs/serial.c ****         while (inb(UART_CTS_PORT) & _BV(UART_CTS_PIN));     // wait for clear to send
+  74:../libs/serial.c **** #endif
+  75:../libs/serial.c ****         UART_DATA_REG = c;                                  // send
+ 158               	.LM7:
+ 159 0026 8093 C600 		sts 198,r24
+ 160               	.L4:
+  76:../libs/serial.c ****         while (!(UART_STATUS_REG & _BV(TRANSMIT_COMPLETE_BIT)));    // wait till gone
+ 162               	.LM8:
+ 163 002a 8091 C000 		lds r24,192
+ 164 002e 86FF      		sbrs r24,6
+ 165 0030 00C0      		rjmp .L4
+  77:../libs/serial.c ****         UART_STATUS_REG |= _BV(TRANSMIT_COMPLETE_BIT);      // reset TXCflag
+ 167               	.LM9:
+ 168 0032 8091 C000 		lds r24,192
+ 169 0036 8064      		ori r24,lo8(64)
+ 170 0038 8093 C000 		sts 192,r24
+ 171 003c 0895      		ret
+ 173               	.Lscope2:
+ 175               		.stabd	78,0,0
+ 177               	.global	getch
+ 179               	getch:
+ 180               		.stabd	46,0,0
+  78:../libs/serial.c **** }
+  79:../libs/serial.c **** 
+  80:../libs/serial.c **** /*-----------------------------------------------------------------------------*/
+  81:../libs/serial.c **** /* Get a character when the Rx is ready (blocking)
+  82:../libs/serial.c **** 
+  83:../libs/serial.c **** The function asserts RTS low then waits for the receive complete bit is set.
+  84:../libs/serial.c **** RTS is then cleared high. The character is then retrieved.
+  85:../libs/serial.c **** */
+  86:../libs/serial.c **** 
+  87:../libs/serial.c **** unsigned char getch(void)
+  88:../libs/serial.c **** {
+ 182               	.LM10:
+ 183               	.LFBB3:
+ 184               	/* prologue: function */
+ 185               	/* frame size = 0 */
+ 186               	/* stack size = 0 */
+ 187               	.L__stack_usage = 0
+ 188               	.L8:
+  89:../libs/serial.c **** #ifdef USE_HARDWARE_FLOW
+  90:../libs/serial.c ****     cbi(UART_RTS_PORT,UART_RTS_PIN);                        // Enable RTS
+  91:../libs/serial.c **** #endif
+  92:../libs/serial.c ****     while (!(UART_STATUS_REG & _BV(RECEIVE_COMPLETE_BIT)));
+ 190               	.LM11:
+ 191 003e 8091 C000 		lds r24,192
+ 192 0042 87FF      		sbrs r24,7
+ 193 0044 00C0      		rjmp .L8
+  93:../libs/serial.c **** #ifdef USE_HARDWARE_FLOW
+  94:../libs/serial.c ****     sbi(UART_RTS_PORT,UART_RTS_PIN);                        // Disable RTS
+  95:../libs/serial.c **** #endif
+  96:../libs/serial.c ****     return UART_DATA_REG;
+ 195               	.LM12:
+ 196 0046 8091 C600 		lds r24,198
+  97:../libs/serial.c **** }
+ 198               	.LM13:
+ 199 004a 0895      		ret
+ 201               	.Lscope3:
+ 203               		.stabd	78,0,0
+ 205               	.Letext0:
+ 206               		.ident	"GCC: (GNU) 4.8.2"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 serial.c
+     /tmp/ccTdRUnu.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccTdRUnu.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccTdRUnu.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccTdRUnu.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccTdRUnu.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccTdRUnu.s:105    .text:0000000000000000 uartInit
+     /tmp/ccTdRUnu.s:148    .text:0000000000000026 sendch
+     /tmp/ccTdRUnu.s:179    .text:000000000000003e getch
+
+NO UNDEFINED SYMBOLS
