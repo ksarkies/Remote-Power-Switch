@@ -1,6 +1,6 @@
 /*****************************************************************************
 *        Power Control Project Remote Unit
-*       Ken Sarkies ksarkies@trinity.asn.au
+*       Ken Sarkies ksarkies@internode.on.net
 *
 * File              : power-control-remote.h
 * Compiler          : AVR-GCC/avr-libc(>= 1.2.5)
@@ -16,7 +16,7 @@
 **********************************************************/
 /***************************************************************************
  *   Copyright (C) 2011 by Ken Sarkies                                     *
- *   ksarkies@trinity.asn.au                                               *
+ *   ksarkies@internode.on.net                                             *
  *                                                                         *
  *   This file is part of Power Controller                                 *
  *                                                                         *

@@ -1,6 +1,6 @@
 /*****************************************************************************
 *        Power Control Project Remote Unit
-*       Ken Sarkies ksarkies@trinity.asn.au
+*       Ken Sarkies ksarkies@internode.on.net
 *
 * File              : power-control-attiny2313.h
 * Compiler          : AVR-GCC/avr-libc(>= 1.2.5)

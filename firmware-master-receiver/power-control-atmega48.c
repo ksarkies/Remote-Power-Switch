@@ -23,13 +23,13 @@ enabled to allow the RTC to operate.
 The receiver could also be set to lower power mode but we haven't tried
 this as the datasheets are vague on this point.
 
-@note Software: AVR-GCC 3.4.5
+@note Software: AVR-GCC 4.8.2
 @note Target:   ATMega48
 @note Tested:   ATMega48 at 8MHz.
 */
 /***************************************************************************
  *   Copyright (C) 2011 by Ken Sarkies                                     *
- *   ksarkies@trinity.asn.au                                               *
+ *   ksarkies@internode.on.net                                             *
  *                                                                         *
  *   This file is part of Power Controller                                 *
  *                                                                         *

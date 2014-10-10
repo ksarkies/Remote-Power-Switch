@@ -1,6 +1,6 @@
 /*****************************************************************************
 *        Power Control Project Master/Remote Unit
-*       Ken Sarkies ksarkies@trinity.asn.au
+*       Ken Sarkies ksarkies@internode.on.net
 *
 * File              : power-control-atmega48.h
 * Compiler          : AVR-GCC/avr-libc(>= 1.2.5)

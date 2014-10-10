@@ -1,10 +1,10 @@
 /*        Power Control Project Master/Remote Unit
-*       Ken Sarkies ksarkies@trinity.asn.au
+*       Ken Sarkies ksarkies@internode.on.net
 *
 * File              : power-control-atmega48.h
 * Compiler          : AVR-GCC/avr-libc(>= 1.2.5)
 * Revision          : $Revision: 0.0 $
-* Updated by        : $ author K. Sarkies 206/06/2011 $
+* Updated by        : $ author K. Sarkies 26/06/2011 $
 *
 * Target platform   : ATMega48
 *
@@ -12,7 +12,7 @@
 */
 /***************************************************************************
  *   Copyright (C) 2011 by Ken Sarkies                                     *
- *   ksarkies@trinity.asn.au                                               *
+ *   ksarkies@internode.on.net                                             *
  *                                                                         *
  *   This file is part of Power Controller                                 *
  *                                                                         *

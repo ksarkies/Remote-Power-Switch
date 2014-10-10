@@ -38,7 +38,7 @@ PROJECT_NUMBER         =
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = /home/ksarkies/Development-Software/power-control-remote/
+OUTPUT_DIRECTORY       = /home/ksarkies/Projects/Remote-Power-Switch/power-control-remote/
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
@@ -124,7 +124,7 @@ FULL_PATH_NAMES        = NO
 # If left blank the directory from which doxygen is run is used as the
 # path to strip.
 
-STRIP_FROM_PATH        = /home/ksarkies/Development-Software/power-control-remote/
+STRIP_FROM_PATH        = home/ksarkies/Projects/Remote-Power-Switch/power-control-remote/
 
 # The STRIP_FROM_INC_PATH tag can be used to strip a user-defined part of
 # the path mentioned in the documentation of a class, which tells

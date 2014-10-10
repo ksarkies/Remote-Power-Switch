@@ -20,7 +20,7 @@ The sync pattern is:
 AA AA AA 2D D4 ...
 
 @note
-Software: AVR-GCC 3.4.5
+Software: AVR-GCC 4.8.2
 @note
 Target:   Any AVR
 @note
@@ -28,7 +28,7 @@ Tested:   ATMega48, ATTiny2313 at 8MHz internal clock.
  */
 /***************************************************************************
  *   Copyright (C) 2011 by Ken Sarkies                                     *
- *   ksarkies@trinity.asn.au                                               *
+ *   ksarkies@internode.on.net                                             *
  *                                                                         *
  *   This file is part of Power Controller                                 *
  *                                                                         *
