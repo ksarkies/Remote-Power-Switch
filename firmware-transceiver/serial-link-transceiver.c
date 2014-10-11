@@ -53,12 +53,13 @@ Tested:   ATMega48 at 8MHz internal clock.
 #include <avr/sleep.h>
 #include <util/delay.h>
 #include <string.h>
+#include "../libs-master-receiver/defines-M48.h"
+#include "../libs-master-receiver/power-control-atmega48.h"
+#include "../libs-master-receiver/serial.h"
+#include "../libs-master-receiver/timer.h"
 #include "rfm12_config.h"
 #include "../auxiliary/rfm12-1.1/src/rfm12.h"
 #include "../auxiliary/rfm12-1.1/src/rfm12.c"
-#include "../libs/defines-M48.h"
-#include "../libs/serial.h"
-#include "../libs/timer.h"
 #include "serial-link-transceiver.h"
 
 /** Convenience macros (we don't use them all) */
@@ -82,15 +83,18 @@ Tested:   ATMega48 at 8MHz internal clock.
 
 /** @name UART variables */
 /*@{*/
-    volatile uint16_t uartInput;    /**< Character and errorcode read from uart */
-    volatile uint8_t lastError;     /**< Error code for transmission back */
-    volatile uint8_t checkSum;      /**< Checksum on message contents */
+volatile uint16_t uartInput;    /**< Character and errorcode read from uart */
+volatile uint8_t lastError;     /**< Error code for transmission back */
+volatile uint8_t checkSum;      /**< Checksum on message contents */
 /*@}*/
 
+/** Real Time Clock Global Variable, ticks are 30.5 per second */
+uint32_t timeValue;
 /*****************************************************************************/
-/* Prototypes */
+/* Local Prototypes */
 
 void hardwareInit(void);
+void timerInit(void);
 void wdtInit(void);
 /*****************************************************************************/
 /** @brief Main Program */
@@ -99,44 +103,47 @@ int main(void)
 {
     hardwareInit();
     uartInit();
+    timer0Init(0,5);
 	_delay_ms(250);
 	_delay_ms(250);
 	_delay_ms(250);
 
     rfm12_init();
-/** Initialize the UART library, pass the baudrate and avr cpu clock 
-(uses the macro UART_BAUD_SELECT()). Set the baudrate to a predefined value. */
-    wdtInit();
+//    wdtInit();
     sei();
 
-	uint8_t tv[] = "444444";
     for(;;)
     {
-        wdt_reset();
+//        wdt_reset();
 		if (rfm12_rx_status() == STATUS_COMPLETE)
 		{
 			uint8_t *bufcontents = rfm12_rx_buffer();
 
             sendch('A');
-			// dump buffer contents to uart			
+/* dump buffer contents to uart			 */
         	uint8_t i;
 			for (i=0;i<rfm12_rx_len();i++)
 			{
 				sendch(bufcontents[i]);
 			}
 			
-// tell the implementation that the buffer
-// can be reused for the next data.
+/* Ttell the implementation that the buffer can be reused for the next data. */
 			rfm12_rx_clear();
 		}
-		rfm12_tx(sizeof(tv), 0, tv);
+/* Send a transmission every 30 ticks (about 1 second) */
+		if (timeValue > 30)
+        {
+            sendch('X');
+        	uint8_t tv[] = "444444";
+            rfm12_tx(sizeof(tv), 0, tv);
+            timeValue = 0;
+        }
 		rfm12_tick();
-    	_delay_ms(100);
     }
 }
 
 /****************************************************************************/
-/** @brief Initialize the hardware for process measurement
+/** @brief Initialize the hardware
 
 */
 
@@ -169,4 +176,6 @@ This ISR simply updates the RTC.
 */
 ISR(TIMER_INTERRUPT)
 {
+  timeValue++;
 }
+

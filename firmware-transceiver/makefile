@@ -38,8 +38,9 @@ OPT = 2
 TARGET = serial-link-transceiver
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c ../libs/serial.c
-#SRC = $(TARGET).c uart/uart.c timer/timer.c twi/i2c.c adc/adc.c
+SRC = $(TARGET).c
+SRC += ../libs-master-receiver/serial.c
+SRC += ../libs-master-receiver/timer.c
 
 
 # List Assembler source files here.

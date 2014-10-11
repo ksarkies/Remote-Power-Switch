@@ -850,7 +850,7 @@
  182:../auxiliary/rfm12-1.1/src/rfm12.c **** 				checksum = rfm12_read_fifo_inline();
  542               	.LM69:
  543 0148 00D0      		rcall rfm12_read_fifo_inline
- 544 014a 8093 0000 		sts checksum.1838,r24
+ 544 014a 8093 0000 		sts checksum.1849,r24
  185:../auxiliary/rfm12-1.1/src/rfm12.c **** 				ctrl.num_bytes = checksum + PACKET_OVERHEAD;
  546               	.LM70:
  547 014e 93E0      		ldi r25,lo8(3)
@@ -924,15 +924,15 @@
  615               	.LM81:
  616 01c2 00C0      		rjmp .L25
  617               	.L38:
- 618               	.LBB25:
+ 618               	.LBB22:
  222:../auxiliary/rfm12-1.1/src/rfm12.c **** 					data = rfm12_read_fifo_inline();
  620               	.LM82:
  621 01c4 00D0      		rcall rfm12_read_fifo_inline
  232:../auxiliary/rfm12-1.1/src/rfm12.c **** 					checksum ^= data;
  623               	.LM83:
- 624 01c6 9091 0000 		lds r25,checksum.1838
+ 624 01c6 9091 0000 		lds r25,checksum.1849
  625 01ca 9827      		eor r25,r24
- 626 01cc 9093 0000 		sts checksum.1838,r25
+ 626 01cc 9093 0000 		sts checksum.1849,r25
  235:../auxiliary/rfm12-1.1/src/rfm12.c **** 					if(ctrl.bytecount < (RFM12_RX_BUFFER_SIZE + 3))
  628               	.LM84:
  629 01d0 2091 0000 		lds r18,ctrl+3
@@ -963,7 +963,7 @@
  252:../auxiliary/rfm12-1.1/src/rfm12.c **** 					goto END;
  655               	.LM89:
  656 01fa 00C0      		rjmp .L25
- 657               	.LBE25:
+ 657               	.LBE22:
  665               	.Lscope8:
  667               		.stabd	78,0,0
  669               	.global	rfm12_tick
@@ -1311,8 +1311,8 @@
  838 0290 80E0      		ldi r24,lo8(rf_tx_buffer+5)
  839 0292 90E0      		ldi r25,hi8(rf_tx_buffer+5)
  840 0294 00D0      		rcall memcpy
- 841               	.LBB26:
- 842               	.LBB27:
+ 841               	.LBB23:
+ 842               	.LBB24:
  481:../auxiliary/rfm12-1.1/src/rfm12.c **** 	if(ctrl.txstate != STATUS_FREE)
  844               	.LM118:
  845 0296 8091 0000 		lds r24,ctrl+1
@@ -1337,8 +1337,8 @@
  864               	.LM123:
  865 02b4 80E8      		ldi r24,lo8(-128)
  866 02b6 00C0      		rjmp .L46
- 867               	.LBE27:
- 868               	.LBE26:
+ 867               	.LBE24:
+ 868               	.LBE23:
  870               	.Lscope11:
  872               		.stabd	78,0,0
  874               	.global	rfm12_rx_clear
@@ -1438,8 +1438,8 @@
  582:../auxiliary/rfm12-1.1/src/rfm12.c **** 	DDR_SS |= (1<<BIT_SS);	
  935               	.LM130:
  936 02ea 549A      		sbi 0xa,4
- 937               	.LBB28:
- 938               	.LBB29:
+ 937               	.LBB25:
+ 938               	.LBB26:
  940               	.Ltext3:
  179:../auxiliary/rfm12-1.1/src/include/rfm12_spi.c **** 	DDR_MOSI   |= (_BV(BIT_MOSI));
  942               	.LM131:
@@ -1452,8 +1452,8 @@
  949 02f0 549A      		sbi 0xa,4
  951               	.LM134:
  952 02f2 5698      		cbi 0xa,6
- 953               	.LBE29:
- 954               	.LBE28:
+ 953               	.LBE26:
+ 954               	.LBE25:
  956               	.Ltext4:
  583:../auxiliary/rfm12-1.1/src/rfm12.c **** 	spi_init();
  584:../auxiliary/rfm12-1.1/src/rfm12.c **** 
@@ -1699,50 +1699,54 @@
   53:serial-link-transceiver.c **** #include <avr/sleep.h>
   54:serial-link-transceiver.c **** #include <util/delay.h>
   55:serial-link-transceiver.c **** #include <string.h>
-  56:serial-link-transceiver.c **** #include "rfm12_config.h"
-  57:serial-link-transceiver.c **** #include "../auxiliary/rfm12-1.1/src/rfm12.h"
-  58:serial-link-transceiver.c **** #include "../auxiliary/rfm12-1.1/src/rfm12.c"
-  59:serial-link-transceiver.c **** #include "../libs/defines-M48.h"
-  60:serial-link-transceiver.c **** #include "../libs/serial.h"
-  61:serial-link-transceiver.c **** #include "../libs/timer.h"
-  62:serial-link-transceiver.c **** #include "serial-link-transceiver.h"
-  63:serial-link-transceiver.c **** 
-  64:serial-link-transceiver.c **** /** Convenience macros (we don't use them all) */
-  65:serial-link-transceiver.c **** #define TRUE 1
-  66:serial-link-transceiver.c **** #define FALSE 0
-  67:serial-link-transceiver.c **** 
-  68:serial-link-transceiver.c **** #define inb(sfr) _SFR_BYTE(sfr)
-  69:serial-link-transceiver.c **** #define inw(sfr) _SFR_WORD(sfr)
-  70:serial-link-transceiver.c **** #define outb(sfr, val) (_SFR_BYTE(sfr) = (val))
-  71:serial-link-transceiver.c **** #define outw(sfr, val) (_SFR_WORD(sfr) = (val))
-  72:serial-link-transceiver.c **** #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
-  73:serial-link-transceiver.c **** #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
-  74:serial-link-transceiver.c **** #define high(x) ((uint8_t) (x >> 8) & 0xFF)
-  75:serial-link-transceiver.c **** #define low(x) ((uint8_t) (x & 0xFF))
-  76:serial-link-transceiver.c **** 
-  77:serial-link-transceiver.c **** /** SPI Clock Timing */
-  78:serial-link-transceiver.c **** #define SPI_DELAY 1
-  79:serial-link-transceiver.c **** 
-  80:serial-link-transceiver.c **** /*****************************************************************************/
-  81:serial-link-transceiver.c **** /* Global Variables */
-  82:serial-link-transceiver.c **** 
-  83:serial-link-transceiver.c **** /** @name UART variables */
-  84:serial-link-transceiver.c **** /*@{*/
-  85:serial-link-transceiver.c ****     volatile uint16_t uartInput;    /**< Character and errorcode read from uart */
-  86:serial-link-transceiver.c ****     volatile uint8_t lastError;     /**< Error code for transmission back */
-  87:serial-link-transceiver.c ****     volatile uint8_t checkSum;      /**< Checksum on message contents */
-  88:serial-link-transceiver.c **** /*@}*/
-  89:serial-link-transceiver.c **** 
-  90:serial-link-transceiver.c **** /*****************************************************************************/
-  91:serial-link-transceiver.c **** /* Prototypes */
-  92:serial-link-transceiver.c **** 
-  93:serial-link-transceiver.c **** void hardwareInit(void);
-  94:serial-link-transceiver.c **** void wdtInit(void);
-  95:serial-link-transceiver.c **** /*****************************************************************************/
-  96:serial-link-transceiver.c **** /** @brief Main Program */
-  97:serial-link-transceiver.c **** 
-  98:serial-link-transceiver.c **** int main(void)
-  99:serial-link-transceiver.c **** {
+  56:serial-link-transceiver.c **** #include "../libs-master-receiver/defines-M48.h"
+  57:serial-link-transceiver.c **** #include "../libs-master-receiver/power-control-atmega48.h"
+  58:serial-link-transceiver.c **** #include "../libs-master-receiver/serial.h"
+  59:serial-link-transceiver.c **** #include "../libs-master-receiver/timer.h"
+  60:serial-link-transceiver.c **** #include "rfm12_config.h"
+  61:serial-link-transceiver.c **** #include "../auxiliary/rfm12-1.1/src/rfm12.h"
+  62:serial-link-transceiver.c **** #include "../auxiliary/rfm12-1.1/src/rfm12.c"
+  63:serial-link-transceiver.c **** #include "serial-link-transceiver.h"
+  64:serial-link-transceiver.c **** 
+  65:serial-link-transceiver.c **** /** Convenience macros (we don't use them all) */
+  66:serial-link-transceiver.c **** #define TRUE 1
+  67:serial-link-transceiver.c **** #define FALSE 0
+  68:serial-link-transceiver.c **** 
+  69:serial-link-transceiver.c **** #define inb(sfr) _SFR_BYTE(sfr)
+  70:serial-link-transceiver.c **** #define inw(sfr) _SFR_WORD(sfr)
+  71:serial-link-transceiver.c **** #define outb(sfr, val) (_SFR_BYTE(sfr) = (val))
+  72:serial-link-transceiver.c **** #define outw(sfr, val) (_SFR_WORD(sfr) = (val))
+  73:serial-link-transceiver.c **** #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
+  74:serial-link-transceiver.c **** #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
+  75:serial-link-transceiver.c **** #define high(x) ((uint8_t) (x >> 8) & 0xFF)
+  76:serial-link-transceiver.c **** #define low(x) ((uint8_t) (x & 0xFF))
+  77:serial-link-transceiver.c **** 
+  78:serial-link-transceiver.c **** /** SPI Clock Timing */
+  79:serial-link-transceiver.c **** #define SPI_DELAY 1
+  80:serial-link-transceiver.c **** 
+  81:serial-link-transceiver.c **** /*****************************************************************************/
+  82:serial-link-transceiver.c **** /* Global Variables */
+  83:serial-link-transceiver.c **** 
+  84:serial-link-transceiver.c **** /** @name UART variables */
+  85:serial-link-transceiver.c **** /*@{*/
+  86:serial-link-transceiver.c **** volatile uint16_t uartInput;    /**< Character and errorcode read from uart */
+  87:serial-link-transceiver.c **** volatile uint8_t lastError;     /**< Error code for transmission back */
+  88:serial-link-transceiver.c **** volatile uint8_t checkSum;      /**< Checksum on message contents */
+  89:serial-link-transceiver.c **** /*@}*/
+  90:serial-link-transceiver.c **** 
+  91:serial-link-transceiver.c **** /** Real Time Clock Global Variable, ticks are 30.5 per second */
+  92:serial-link-transceiver.c **** uint32_t timeValue;
+  93:serial-link-transceiver.c **** /*****************************************************************************/
+  94:serial-link-transceiver.c **** /* Local Prototypes */
+  95:serial-link-transceiver.c **** 
+  96:serial-link-transceiver.c **** void hardwareInit(void);
+  97:serial-link-transceiver.c **** void timerInit(void);
+  98:serial-link-transceiver.c **** void wdtInit(void);
+  99:serial-link-transceiver.c **** /*****************************************************************************/
+ 100:serial-link-transceiver.c **** /** @brief Main Program */
+ 101:serial-link-transceiver.c **** 
+ 102:serial-link-transceiver.c **** int main(void)
+ 103:serial-link-transceiver.c **** {
  1080               	.LM157:
  1081               	.LFBB14:
  1082 0000 CF93      		push r28
@@ -1759,13 +1763,19 @@
  1093               	/* frame size = 7 */
  1094               	/* stack size = 9 */
  1095               	.L__stack_usage = 9
- 100:serial-link-transceiver.c ****     hardwareInit();
- 101:serial-link-transceiver.c ****     uartInit();
+ 104:serial-link-transceiver.c ****     hardwareInit();
+ 105:serial-link-transceiver.c ****     uartInit();
  1097               	.LM158:
  1098 0014 00D0      		rcall uartInit
- 1099               	.LBB30:
- 1100               	.LBB31:
- 1102               	.Ltext6:
+ 106:serial-link-transceiver.c ****     timer0Init(0,5);
+ 1100               	.LM159:
+ 1101 0016 65E0      		ldi r22,lo8(5)
+ 1102 0018 70E0      		ldi r23,0
+ 1103 001a 80E0      		ldi r24,0
+ 1104 001c 00D0      		rcall timer0Init
+ 1105               	.LBB27:
+ 1106               	.LBB28:
+ 1108               	.Ltext6:
    1:/usr/lib/avr/include/util/delay.h **** /* Copyright (c) 2002, Marek Michalkiewicz
    2:/usr/lib/avr/include/util/delay.h ****    Copyright (c) 2004,2005,2007 Joerg Wunsch
    3:/usr/lib/avr/include/util/delay.h ****    Copyright (c) 2007  Florin-Viorel Petrov
@@ -1930,164 +1940,92 @@
  162:/usr/lib/avr/include/util/delay.h **** 	#endif
  163:/usr/lib/avr/include/util/delay.h **** 
  164:/usr/lib/avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
- 1104               	.LM159:
- 1105 0016 2FE7      		ldi r18,lo8(399999)
- 1106 0018 8AE1      		ldi r24,hi8(399999)
- 1107 001a 96E0      		ldi r25,hlo8(399999)
- 1108 001c 2150      		1: subi r18,1
- 1109 001e 8040      		sbci r24,0
- 1110 0020 9040      		sbci r25,0
- 1111 0022 01F4      		brne 1b
- 1112 0024 00C0      		rjmp .
- 1113 0026 0000      		nop
- 1114               	.LBE31:
- 1115               	.LBE30:
- 1116               	.LBB32:
- 1117               	.LBB33:
- 1118 0028 2FE7      		ldi r18,lo8(399999)
- 1119 002a 8AE1      		ldi r24,hi8(399999)
- 1120 002c 96E0      		ldi r25,hlo8(399999)
- 1121 002e 2150      		1: subi r18,1
- 1122 0030 8040      		sbci r24,0
- 1123 0032 9040      		sbci r25,0
- 1124 0034 01F4      		brne 1b
- 1125 0036 00C0      		rjmp .
- 1126 0038 0000      		nop
- 1127               	.LBE33:
- 1128               	.LBE32:
- 1129               	.LBB34:
- 1130               	.LBB35:
- 1131 003a 2FE7      		ldi r18,lo8(399999)
- 1132 003c 8AE1      		ldi r24,hi8(399999)
- 1133 003e 96E0      		ldi r25,hlo8(399999)
- 1134 0040 2150      		1: subi r18,1
- 1135 0042 8040      		sbci r24,0
- 1136 0044 9040      		sbci r25,0
- 1137 0046 01F4      		brne 1b
- 1138 0048 00C0      		rjmp .
- 1139 004a 0000      		nop
- 1140               	.LBE35:
- 1141               	.LBE34:
- 1143               	.Ltext7:
- 102:serial-link-transceiver.c **** 	_delay_ms(250);
- 103:serial-link-transceiver.c **** 	_delay_ms(250);
- 104:serial-link-transceiver.c **** 	_delay_ms(250);
- 105:serial-link-transceiver.c **** 
- 106:serial-link-transceiver.c ****     rfm12_init();
- 1145               	.LM160:
- 1146 004c 00D0      		rcall rfm12_init
- 1147               	.LBB36:
- 1148               	.LBB37:
- 107:serial-link-transceiver.c **** /** Initialize the UART library, pass the baudrate and avr cpu clock 
- 108:serial-link-transceiver.c **** (uses the macro UART_BAUD_SELECT()). Set the baudrate to a predefined value. */
- 109:serial-link-transceiver.c ****     wdtInit();
- 110:serial-link-transceiver.c ****     sei();
- 111:serial-link-transceiver.c **** 
- 112:serial-link-transceiver.c **** 	uint8_t tv[] = "444444";
- 113:serial-link-transceiver.c ****     for(;;)
- 114:serial-link-transceiver.c ****     {
- 115:serial-link-transceiver.c ****         wdt_reset();
- 116:serial-link-transceiver.c **** 		if (rfm12_rx_status() == STATUS_COMPLETE)
- 117:serial-link-transceiver.c **** 		{
- 118:serial-link-transceiver.c **** 			uint8_t *bufcontents = rfm12_rx_buffer();
- 119:serial-link-transceiver.c **** 
- 120:serial-link-transceiver.c ****             sendch('A');
- 121:serial-link-transceiver.c **** 			// dump buffer contents to uart			
- 122:serial-link-transceiver.c ****         	uint8_t i;
- 123:serial-link-transceiver.c **** 			for (i=0;i<rfm12_rx_len();i++)
- 124:serial-link-transceiver.c **** 			{
- 125:serial-link-transceiver.c **** 				sendch(bufcontents[i]);
- 126:serial-link-transceiver.c **** 			}
- 127:serial-link-transceiver.c **** 			
- 128:serial-link-transceiver.c **** // tell the implementation that the buffer
- 129:serial-link-transceiver.c **** // can be reused for the next data.
- 130:serial-link-transceiver.c **** 			rfm12_rx_clear();
- 131:serial-link-transceiver.c **** 		}
- 132:serial-link-transceiver.c **** 		rfm12_tx(sizeof(tv), 0, tv);
- 133:serial-link-transceiver.c **** 		rfm12_tick();
- 134:serial-link-transceiver.c ****     	_delay_ms(100);
- 135:serial-link-transceiver.c ****     }
- 136:serial-link-transceiver.c **** }
- 137:serial-link-transceiver.c **** 
- 138:serial-link-transceiver.c **** /****************************************************************************/
- 139:serial-link-transceiver.c **** /** @brief Initialize the hardware for process measurement
- 140:serial-link-transceiver.c **** 
- 141:serial-link-transceiver.c **** */
- 142:serial-link-transceiver.c **** 
- 143:serial-link-transceiver.c **** void hardwareInit(void)
- 144:serial-link-transceiver.c **** {
- 145:serial-link-transceiver.c **** }
- 146:serial-link-transceiver.c **** 
- 147:serial-link-transceiver.c **** /****************************************************************************/
- 148:serial-link-transceiver.c **** /** @brief Initialize the watchdog timer to interrupt on maximum delay
- 149:serial-link-transceiver.c **** 
- 150:serial-link-transceiver.c **** */
- 151:serial-link-transceiver.c **** void wdtInit(void)
- 152:serial-link-transceiver.c **** {
- 153:serial-link-transceiver.c **** /* Initialize the Watchdog timer to interrupt. */
- 154:serial-link-transceiver.c **** /* IMPORTANT: Disable the "WDT Always On" fuse so that WDT can be turned off. */
- 155:serial-link-transceiver.c ****     wdt_disable();     /* watchdog timer turn off ready for setup. */
- 1150               	.LM161:
- 1151 004e 88E1      		ldi r24,lo8(24)
- 1152               	/* #APP */
- 1153               	 ;  155 "serial-link-transceiver.c" 1
- 1154 0050 0FB6      		in __tmp_reg__, __SREG__
- 1155 0052 F894      		cli
- 1156 0054 8093 6000 		sts 96, r24
- 1157 0058 1092 6000 		sts 96, __zero_reg__
- 1158 005c 0FBE      		out __SREG__,__tmp_reg__
- 1159               		
- 1160               	 ;  0 "" 2
- 156:serial-link-transceiver.c ****     outb(WDTCR,0);
- 1162               	.LM162:
- 1163               	/* #NOAPP */
- 1164 005e 1092 6000 		sts 96,__zero_reg__
- 157:serial-link-transceiver.c **** /* Set the WDT with WDE clear, interrupts enabled, interrupt mode set, and
- 158:serial-link-transceiver.c **** maximum timeout 8 seconds to give continuous interrupt mode. */
- 159:serial-link-transceiver.c ****     sei();
- 1166               	.LM163:
- 1167               	/* #APP */
- 1168               	 ;  159 "serial-link-transceiver.c" 1
- 1169 0062 7894      		sei
- 1170               	 ;  0 "" 2
- 160:serial-link-transceiver.c **** //    outb(WDTCR,_BV(WDIE)|_BV(WDP3)|_BV(WDP0));
- 161:serial-link-transceiver.c ****     outb(WDTCR,_BV(WDIE));  /* For test only: 32 ms timeout */
- 1172               	.LM164:
- 1173               	/* #NOAPP */
- 1174 0064 80E4      		ldi r24,lo8(64)
- 1175 0066 8093 6000 		sts 96,r24
- 1176               	.LBE37:
- 1177               	.LBE36:
- 110:serial-link-transceiver.c ****     sei();
- 1179               	.LM165:
- 1180               	/* #APP */
- 1181               	 ;  110 "serial-link-transceiver.c" 1
- 1182 006a 7894      		sei
- 1183               	 ;  0 "" 2
- 112:serial-link-transceiver.c **** 	uint8_t tv[] = "444444";
- 1185               	.LM166:
- 1186               	/* #NOAPP */
- 1187 006c 87E0      		ldi r24,lo8(7)
- 1188 006e E0E0      		ldi r30,lo8(.LC0)
- 1189 0070 F0E0      		ldi r31,hi8(.LC0)
- 1190 0072 DE01      		movw r26,r28
- 1191 0074 1196      		adiw r26,1
- 1192               		0:
- 1193 0076 0190      		ld r0,Z+
- 1194 0078 0D92      		st X+,r0
- 1195 007a 8A95      		dec r24
- 1196 007c 01F4      		brne 0b
- 1197               	.L58:
- 115:serial-link-transceiver.c ****         wdt_reset();
- 1199               	.LM167:
- 1200               	/* #APP */
- 1201               	 ;  115 "serial-link-transceiver.c" 1
- 1202 007e A895      		wdr
- 1203               	 ;  0 "" 2
- 1204               	/* #NOAPP */
- 1205               	.LBB38:
- 1206               	.LBB39:
- 1208               	.Ltext8:
+ 1110               	.LM160:
+ 1111 001e 2FE7      		ldi r18,lo8(399999)
+ 1112 0020 8AE1      		ldi r24,hi8(399999)
+ 1113 0022 96E0      		ldi r25,hlo8(399999)
+ 1114 0024 2150      		1: subi r18,1
+ 1115 0026 8040      		sbci r24,0
+ 1116 0028 9040      		sbci r25,0
+ 1117 002a 01F4      		brne 1b
+ 1118 002c 00C0      		rjmp .
+ 1119 002e 0000      		nop
+ 1120               	.LBE28:
+ 1121               	.LBE27:
+ 1122               	.LBB29:
+ 1123               	.LBB30:
+ 1124 0030 2FE7      		ldi r18,lo8(399999)
+ 1125 0032 8AE1      		ldi r24,hi8(399999)
+ 1126 0034 96E0      		ldi r25,hlo8(399999)
+ 1127 0036 2150      		1: subi r18,1
+ 1128 0038 8040      		sbci r24,0
+ 1129 003a 9040      		sbci r25,0
+ 1130 003c 01F4      		brne 1b
+ 1131 003e 00C0      		rjmp .
+ 1132 0040 0000      		nop
+ 1133               	.LBE30:
+ 1134               	.LBE29:
+ 1135               	.LBB31:
+ 1136               	.LBB32:
+ 1137 0042 2FE7      		ldi r18,lo8(399999)
+ 1138 0044 8AE1      		ldi r24,hi8(399999)
+ 1139 0046 96E0      		ldi r25,hlo8(399999)
+ 1140 0048 2150      		1: subi r18,1
+ 1141 004a 8040      		sbci r24,0
+ 1142 004c 9040      		sbci r25,0
+ 1143 004e 01F4      		brne 1b
+ 1144 0050 00C0      		rjmp .
+ 1145 0052 0000      		nop
+ 1146               	.LBE32:
+ 1147               	.LBE31:
+ 1149               	.Ltext7:
+ 107:serial-link-transceiver.c **** 	_delay_ms(250);
+ 108:serial-link-transceiver.c **** 	_delay_ms(250);
+ 109:serial-link-transceiver.c **** 	_delay_ms(250);
+ 110:serial-link-transceiver.c **** 
+ 111:serial-link-transceiver.c ****     rfm12_init();
+ 1151               	.LM161:
+ 1152 0054 00D0      		rcall rfm12_init
+ 112:serial-link-transceiver.c **** //    wdtInit();
+ 113:serial-link-transceiver.c ****     sei();
+ 1154               	.LM162:
+ 1155               	/* #APP */
+ 1156               	 ;  113 "serial-link-transceiver.c" 1
+ 1157 0056 7894      		sei
+ 1158               	 ;  0 "" 2
+ 1159               	/* #NOAPP */
+ 1160               	.LBB33:
+ 114:serial-link-transceiver.c **** 
+ 115:serial-link-transceiver.c ****     for(;;)
+ 116:serial-link-transceiver.c ****     {
+ 117:serial-link-transceiver.c **** //        wdt_reset();
+ 118:serial-link-transceiver.c **** 		if (rfm12_rx_status() == STATUS_COMPLETE)
+ 119:serial-link-transceiver.c **** 		{
+ 120:serial-link-transceiver.c **** 			uint8_t *bufcontents = rfm12_rx_buffer();
+ 121:serial-link-transceiver.c **** 
+ 122:serial-link-transceiver.c ****             sendch('A');
+ 123:serial-link-transceiver.c **** /* dump buffer contents to uart			 */
+ 124:serial-link-transceiver.c ****         	uint8_t i;
+ 125:serial-link-transceiver.c **** 			for (i=0;i<rfm12_rx_len();i++)
+ 126:serial-link-transceiver.c **** 			{
+ 127:serial-link-transceiver.c **** 				sendch(bufcontents[i]);
+ 128:serial-link-transceiver.c **** 			}
+ 129:serial-link-transceiver.c **** 			
+ 130:serial-link-transceiver.c **** /* Ttell the implementation that the buffer can be reused for the next data. */
+ 131:serial-link-transceiver.c **** 			rfm12_rx_clear();
+ 132:serial-link-transceiver.c **** 		}
+ 133:serial-link-transceiver.c **** /* Send a transmission every 30 ticks (about 1 second) */
+ 134:serial-link-transceiver.c **** 		if (timeValue > 30)
+ 135:serial-link-transceiver.c ****         {
+ 136:serial-link-transceiver.c ****             sendch('X');
+ 137:serial-link-transceiver.c ****         	uint8_t tv[] = "444444";
+ 1162               	.LM163:
+ 1163 0058 97E0      		ldi r25,lo8(7)
+ 1164 005a E92E      		mov r14,r25
+ 1165               	.LBE33:
+ 1166               	.LBB34:
+ 1167               	.LBB35:
+ 1169               	.Ltext8:
    1:../auxiliary/rfm12-1.1/src/rfm12.h **** /**** RFM 12 library for Atmel AVR Microcontrollers *******
    2:../auxiliary/rfm12-1.1/src/rfm12.h ****  *
    3:../auxiliary/rfm12-1.1/src/rfm12.h ****  * This software is free software; you can redistribute it and/or modify
@@ -2333,30 +2271,63 @@
  243:../auxiliary/rfm12-1.1/src/rfm12.h **** 	static inline uint8_t rfm12_rx_status(void)
  244:../auxiliary/rfm12-1.1/src/rfm12.h **** 	{
  245:../auxiliary/rfm12-1.1/src/rfm12.h **** 		return ctrl.rf_buffer_out->status;
- 1210               	.LM168:
- 1211 0080 E091 0000 		lds r30,ctrl+6
- 1212 0084 F091 0000 		lds r31,ctrl+6+1
- 1213 0088 8081      		ld r24,Z
- 1214               	.LBE39:
- 1215               	.LBE38:
- 1217               	.Ltext9:
- 116:serial-link-transceiver.c **** 		if (rfm12_rx_status() == STATUS_COMPLETE)
- 1219               	.LM169:
- 1220 008a 8230      		cpi r24,lo8(2)
- 1221 008c 01F4      		brne .L54
- 1222               	.LBB40:
- 118:serial-link-transceiver.c **** 			uint8_t *bufcontents = rfm12_rx_buffer();
- 1224               	.LM170:
- 1225 008e 8F01      		movw r16,r30
- 1226 0090 0C5F      		subi r16,-4
- 1227 0092 1F4F      		sbci r17,-1
- 120:serial-link-transceiver.c ****             sendch('A');
- 1229               	.LM171:
- 1230 0094 81E4      		ldi r24,lo8(65)
- 1231 0096 00D0      		rcall sendch
- 1232               	.LBB41:
- 1233               	.LBB42:
- 1235               	.Ltext10:
+ 1171               	.LM164:
+ 1172 005c E091 0000 		lds r30,ctrl+6
+ 1173 0060 F091 0000 		lds r31,ctrl+6+1
+ 1174 0064 8081      		ld r24,Z
+ 1175               	.LBE35:
+ 1176               	.LBE34:
+ 1178               	.Ltext9:
+ 118:serial-link-transceiver.c **** 		if (rfm12_rx_status() == STATUS_COMPLETE)
+ 1180               	.LM165:
+ 1181 0066 8230      		cpi r24,lo8(2)
+ 1182 0068 01F0      		breq .L60
+ 1183               	.L54:
+ 134:serial-link-transceiver.c **** 		if (timeValue > 30)
+ 1185               	.LM166:
+ 1186 006a 8091 0000 		lds r24,timeValue
+ 1187 006e 9091 0000 		lds r25,timeValue+1
+ 1188 0072 A091 0000 		lds r26,timeValue+2
+ 1189 0076 B091 0000 		lds r27,timeValue+3
+ 1190 007a 4F97      		sbiw r24,31
+ 1191 007c A105      		cpc r26,__zero_reg__
+ 1192 007e B105      		cpc r27,__zero_reg__
+ 1193 0080 00F4      		brsh .L61
+ 138:serial-link-transceiver.c ****             rfm12_tx(sizeof(tv), 0, tv);
+ 139:serial-link-transceiver.c ****             timeValue = 0;
+ 140:serial-link-transceiver.c ****         }
+ 141:serial-link-transceiver.c **** 		rfm12_tick();
+ 1195               	.LM167:
+ 1196 0082 00D0      		rcall rfm12_tick
+ 1197               	.L62:
+ 1198               	.LBB37:
+ 1199               	.LBB36:
+ 1201               	.Ltext10:
+ 1203               	.LM168:
+ 1204 0084 E091 0000 		lds r30,ctrl+6
+ 1205 0088 F091 0000 		lds r31,ctrl+6+1
+ 1206 008c 8081      		ld r24,Z
+ 1207               	.LBE36:
+ 1208               	.LBE37:
+ 1210               	.Ltext11:
+ 118:serial-link-transceiver.c **** 		if (rfm12_rx_status() == STATUS_COMPLETE)
+ 1212               	.LM169:
+ 1213 008e 8230      		cpi r24,lo8(2)
+ 1214 0090 01F4      		brne .L54
+ 1215               	.L60:
+ 1216               	.LBB38:
+ 120:serial-link-transceiver.c **** 			uint8_t *bufcontents = rfm12_rx_buffer();
+ 1218               	.LM170:
+ 1219 0092 8F01      		movw r16,r30
+ 1220 0094 0C5F      		subi r16,-4
+ 1221 0096 1F4F      		sbci r17,-1
+ 122:serial-link-transceiver.c ****             sendch('A');
+ 1223               	.LM171:
+ 1224 0098 81E4      		ldi r24,lo8(65)
+ 1225 009a 00D0      		rcall sendch
+ 1226               	.LBB39:
+ 1227               	.LBB40:
+ 1229               	.Ltext12:
  246:../auxiliary/rfm12-1.1/src/rfm12.h **** 	}
  247:../auxiliary/rfm12-1.1/src/rfm12.h **** 
  248:../auxiliary/rfm12-1.1/src/rfm12.h **** 	//! Inline function to return the rx buffer length field.
@@ -2366,206 +2337,259 @@
  252:../auxiliary/rfm12-1.1/src/rfm12.h **** 	static inline uint8_t rfm12_rx_len(void)
  253:../auxiliary/rfm12-1.1/src/rfm12.h **** 	{
  254:../auxiliary/rfm12-1.1/src/rfm12.h **** 		return ctrl.rf_buffer_out->len;
- 1237               	.LM172:
- 1238 0098 E091 0000 		lds r30,ctrl+6
- 1239 009c F091 0000 		lds r31,ctrl+6+1
- 1240               	.LBE42:
- 1241               	.LBE41:
- 1243               	.Ltext11:
- 123:serial-link-transceiver.c **** 			for (i=0;i<rfm12_rx_len();i++)
- 1245               	.LM173:
- 1246 00a0 8181      		ldd r24,Z+1
- 1247 00a2 8823      		tst r24
- 1248 00a4 01F0      		breq .L56
- 1249 00a6 F12C      		mov r15,__zero_reg__
- 1250               	.L57:
- 125:serial-link-transceiver.c **** 				sendch(bufcontents[i]);
- 1252               	.LM174:
- 1253 00a8 F801      		movw r30,r16
- 1254 00aa EF0D      		add r30,r15
- 1255 00ac F11D      		adc r31,__zero_reg__
- 1256 00ae 8081      		ld r24,Z
- 1257 00b0 00D0      		rcall sendch
- 123:serial-link-transceiver.c **** 			for (i=0;i<rfm12_rx_len();i++)
- 1259               	.LM175:
- 1260 00b2 F394      		inc r15
- 1261               	.LBB44:
- 1262               	.LBB43:
- 1264               	.Ltext12:
- 1266               	.LM176:
- 1267 00b4 E091 0000 		lds r30,ctrl+6
- 1268 00b8 F091 0000 		lds r31,ctrl+6+1
- 1269               	.LBE43:
- 1270               	.LBE44:
- 1272               	.Ltext13:
- 123:serial-link-transceiver.c **** 			for (i=0;i<rfm12_rx_len();i++)
- 1274               	.LM177:
- 1275 00bc 8181      		ldd r24,Z+1
- 1276 00be F816      		cp r15,r24
- 1277 00c0 00F0      		brlo .L57
- 1278               	.L56:
- 130:serial-link-transceiver.c **** 			rfm12_rx_clear();
- 1280               	.LM178:
- 1281 00c2 00D0      		rcall rfm12_rx_clear
- 1282               	.L54:
- 1283               	.LBE40:
- 132:serial-link-transceiver.c **** 		rfm12_tx(sizeof(tv), 0, tv);
- 1285               	.LM179:
- 1286 00c4 AE01      		movw r20,r28
- 1287 00c6 4F5F      		subi r20,-1
- 1288 00c8 5F4F      		sbci r21,-1
- 1289 00ca 60E0      		ldi r22,0
- 1290 00cc 87E0      		ldi r24,lo8(7)
- 1291 00ce 00D0      		rcall rfm12_tx
- 133:serial-link-transceiver.c **** 		rfm12_tick();
- 1293               	.LM180:
- 1294 00d0 00D0      		rcall rfm12_tick
- 1295               	.LBB45:
- 1296               	.LBB46:
- 1298               	.Ltext14:
- 1300               	.LM181:
- 1301 00d2 2FEF      		ldi r18,lo8(159999)
- 1302 00d4 80E7      		ldi r24,hi8(159999)
- 1303 00d6 92E0      		ldi r25,hlo8(159999)
- 1304 00d8 2150      		1: subi r18,1
- 1305 00da 8040      		sbci r24,0
- 1306 00dc 9040      		sbci r25,0
- 1307 00de 01F4      		brne 1b
- 1308 00e0 00C0      		rjmp .
- 1309 00e2 0000      		nop
- 1310 00e4 00C0      		rjmp .L58
- 1311               	.LBE46:
- 1312               	.LBE45:
- 1321               	.Lscope14:
- 1323               		.stabd	78,0,0
- 1324               		.text
- 1326               	.global	hardwareInit
- 1328               	hardwareInit:
- 1329               		.stabd	46,0,0
- 1331               	.Ltext15:
- 144:serial-link-transceiver.c **** {
- 1333               	.LM182:
- 1334               	.LFBB15:
- 1335               	/* prologue: function */
- 1336               	/* frame size = 0 */
- 1337               	/* stack size = 0 */
- 1338               	.L__stack_usage = 0
- 1339 037e 0895      		ret
- 1341               	.Lscope15:
- 1343               		.stabd	78,0,0
- 1345               	.global	wdtInit
- 1347               	wdtInit:
- 1348               		.stabd	46,0,0
- 152:serial-link-transceiver.c **** {
- 1350               	.LM183:
- 1351               	.LFBB16:
- 1352               	/* prologue: function */
- 1353               	/* frame size = 0 */
- 1354               	/* stack size = 0 */
- 1355               	.L__stack_usage = 0
- 155:serial-link-transceiver.c ****     wdt_disable();     /* watchdog timer turn off ready for setup. */
- 1357               	.LM184:
- 1358 0380 88E1      		ldi r24,lo8(24)
- 1359               	/* #APP */
- 1360               	 ;  155 "serial-link-transceiver.c" 1
- 1361 0382 0FB6      		in __tmp_reg__, __SREG__
- 1362 0384 F894      		cli
- 1363 0386 8093 6000 		sts 96, r24
- 1364 038a 1092 6000 		sts 96, __zero_reg__
- 1365 038e 0FBE      		out __SREG__,__tmp_reg__
- 1366               		
- 1367               	 ;  0 "" 2
- 156:serial-link-transceiver.c ****     outb(WDTCR,0);
- 1369               	.LM185:
- 1370               	/* #NOAPP */
- 1371 0390 1092 6000 		sts 96,__zero_reg__
- 159:serial-link-transceiver.c ****     sei();
- 1373               	.LM186:
- 1374               	/* #APP */
- 1375               	 ;  159 "serial-link-transceiver.c" 1
- 1376 0394 7894      		sei
- 1377               	 ;  0 "" 2
- 1379               	.LM187:
- 1380               	/* #NOAPP */
- 1381 0396 80E4      		ldi r24,lo8(64)
- 1382 0398 8093 6000 		sts 96,r24
- 1383 039c 0895      		ret
- 1385               	.Lscope16:
- 1387               		.stabd	78,0,0
- 1389               	.global	__vector_9
- 1391               	__vector_9:
- 1392               		.stabd	46,0,0
- 162:serial-link-transceiver.c **** 
- 163:serial-link-transceiver.c **** }
- 164:serial-link-transceiver.c **** 
- 165:serial-link-transceiver.c **** /****************************************************************************/
- 166:serial-link-transceiver.c **** /** @brief Interrupt on RTC timer overflow
- 167:serial-link-transceiver.c **** 
- 168:serial-link-transceiver.c **** This ISR simply updates the RTC.
- 169:serial-link-transceiver.c **** */
- 170:serial-link-transceiver.c **** ISR(TIMER_INTERRUPT)
- 171:serial-link-transceiver.c **** {
- 1394               	.LM188:
- 1395               	.LFBB17:
- 1396 039e 1F92      		push r1
- 1397 03a0 0F92      		push r0
- 1398 03a2 0FB6      		in r0,__SREG__
- 1399 03a4 0F92      		push r0
- 1400 03a6 1124      		clr __zero_reg__
- 1401               	/* prologue: Signal */
- 1402               	/* frame size = 0 */
- 1403               	/* stack size = 3 */
- 1404               	.L__stack_usage = 3
- 1405               	/* epilogue start */
- 172:serial-link-transceiver.c **** }
- 1407               	.LM189:
- 1408 03a8 0F90      		pop r0
- 1409 03aa 0FBE      		out __SREG__,r0
- 1410 03ac 0F90      		pop r0
- 1411 03ae 1F90      		pop r1
- 1412 03b0 1895      		reti
- 1414               	.Lscope17:
- 1416               		.stabd	78,0,0
- 1417               		.local	checksum.1838
- 1418               		.comm	checksum.1838,1,1
- 1419               		.comm	checkSum,1,1
- 1420               		.comm	lastError,1,1
- 1421               		.comm	uartInput,2,1
- 1422               		.comm	ctrl,10,1
- 1423               		.comm	rf_rx_buffers,68,1
- 1424               		.comm	rf_tx_buffer,35,1
- 1432               	.Letext0:
- 1433               		.ident	"GCC: (GNU) 4.8.2"
- 1434               	.global __do_copy_data
- 1435               	.global __do_clear_bss
+ 1231               	.LM172:
+ 1232 009c E091 0000 		lds r30,ctrl+6
+ 1233 00a0 F091 0000 		lds r31,ctrl+6+1
+ 1234               	.LBE40:
+ 1235               	.LBE39:
+ 1237               	.Ltext13:
+ 125:serial-link-transceiver.c **** 			for (i=0;i<rfm12_rx_len();i++)
+ 1239               	.LM173:
+ 1240 00a4 8181      		ldd r24,Z+1
+ 1241 00a6 8823      		tst r24
+ 1242 00a8 01F0      		breq .L56
+ 1243 00aa F12C      		mov r15,__zero_reg__
+ 1244               	.L57:
+ 127:serial-link-transceiver.c **** 				sendch(bufcontents[i]);
+ 1246               	.LM174:
+ 1247 00ac F801      		movw r30,r16
+ 1248 00ae EF0D      		add r30,r15
+ 1249 00b0 F11D      		adc r31,__zero_reg__
+ 1250 00b2 8081      		ld r24,Z
+ 1251 00b4 00D0      		rcall sendch
+ 125:serial-link-transceiver.c **** 			for (i=0;i<rfm12_rx_len();i++)
+ 1253               	.LM175:
+ 1254 00b6 F394      		inc r15
+ 1255               	.LBB42:
+ 1256               	.LBB41:
+ 1258               	.Ltext14:
+ 1260               	.LM176:
+ 1261 00b8 E091 0000 		lds r30,ctrl+6
+ 1262 00bc F091 0000 		lds r31,ctrl+6+1
+ 1263               	.LBE41:
+ 1264               	.LBE42:
+ 1266               	.Ltext15:
+ 125:serial-link-transceiver.c **** 			for (i=0;i<rfm12_rx_len();i++)
+ 1268               	.LM177:
+ 1269 00c0 8181      		ldd r24,Z+1
+ 1270 00c2 F816      		cp r15,r24
+ 1271 00c4 00F0      		brlo .L57
+ 1272               	.L56:
+ 131:serial-link-transceiver.c **** 			rfm12_rx_clear();
+ 1274               	.LM178:
+ 1275 00c6 00D0      		rcall rfm12_rx_clear
+ 1276 00c8 00C0      		rjmp .L54
+ 1277               	.L61:
+ 1278               	.LBE38:
+ 1279               	.LBB43:
+ 136:serial-link-transceiver.c ****             sendch('X');
+ 1281               	.LM179:
+ 1282 00ca 88E5      		ldi r24,lo8(88)
+ 1283 00cc 00D0      		rcall sendch
+ 137:serial-link-transceiver.c ****         	uint8_t tv[] = "444444";
+ 1285               	.LM180:
+ 1286 00ce E0E0      		ldi r30,lo8(.LC0)
+ 1287 00d0 F0E0      		ldi r31,hi8(.LC0)
+ 1288 00d2 DE01      		movw r26,r28
+ 1289 00d4 1196      		adiw r26,1
+ 1290 00d6 8E2D      		mov r24,r14
+ 1291               		0:
+ 1292 00d8 0190      		ld r0,Z+
+ 1293 00da 0D92      		st X+,r0
+ 1294 00dc 8A95      		dec r24
+ 1295 00de 01F4      		brne 0b
+ 138:serial-link-transceiver.c ****             rfm12_tx(sizeof(tv), 0, tv);
+ 1297               	.LM181:
+ 1298 00e0 AE01      		movw r20,r28
+ 1299 00e2 4F5F      		subi r20,-1
+ 1300 00e4 5F4F      		sbci r21,-1
+ 1301 00e6 60E0      		ldi r22,0
+ 1302 00e8 87E0      		ldi r24,lo8(7)
+ 1303 00ea 00D0      		rcall rfm12_tx
+ 139:serial-link-transceiver.c ****             timeValue = 0;
+ 1305               	.LM182:
+ 1306 00ec 1092 0000 		sts timeValue,__zero_reg__
+ 1307 00f0 1092 0000 		sts timeValue+1,__zero_reg__
+ 1308 00f4 1092 0000 		sts timeValue+2,__zero_reg__
+ 1309 00f8 1092 0000 		sts timeValue+3,__zero_reg__
+ 1310               	.LBE43:
+ 1312               	.LM183:
+ 1313 00fc 00D0      		rcall rfm12_tick
+ 1314 00fe 00C0      		rjmp .L62
+ 1326               	.Lscope14:
+ 1328               		.stabd	78,0,0
+ 1329               		.text
+ 1331               	.global	hardwareInit
+ 1333               	hardwareInit:
+ 1334               		.stabd	46,0,0
+ 142:serial-link-transceiver.c ****     }
+ 143:serial-link-transceiver.c **** }
+ 144:serial-link-transceiver.c **** 
+ 145:serial-link-transceiver.c **** /****************************************************************************/
+ 146:serial-link-transceiver.c **** /** @brief Initialize the hardware
+ 147:serial-link-transceiver.c **** 
+ 148:serial-link-transceiver.c **** */
+ 149:serial-link-transceiver.c **** 
+ 150:serial-link-transceiver.c **** void hardwareInit(void)
+ 151:serial-link-transceiver.c **** {
+ 1336               	.LM184:
+ 1337               	.LFBB15:
+ 1338               	/* prologue: function */
+ 1339               	/* frame size = 0 */
+ 1340               	/* stack size = 0 */
+ 1341               	.L__stack_usage = 0
+ 1342 037e 0895      		ret
+ 1344               	.Lscope15:
+ 1346               		.stabd	78,0,0
+ 1348               	.global	wdtInit
+ 1350               	wdtInit:
+ 1351               		.stabd	46,0,0
+ 152:serial-link-transceiver.c **** }
+ 153:serial-link-transceiver.c **** 
+ 154:serial-link-transceiver.c **** /****************************************************************************/
+ 155:serial-link-transceiver.c **** /** @brief Initialize the watchdog timer to interrupt on maximum delay
+ 156:serial-link-transceiver.c **** 
+ 157:serial-link-transceiver.c **** */
+ 158:serial-link-transceiver.c **** void wdtInit(void)
+ 159:serial-link-transceiver.c **** {
+ 1353               	.LM185:
+ 1354               	.LFBB16:
+ 1355               	/* prologue: function */
+ 1356               	/* frame size = 0 */
+ 1357               	/* stack size = 0 */
+ 1358               	.L__stack_usage = 0
+ 160:serial-link-transceiver.c **** /* Initialize the Watchdog timer to interrupt. */
+ 161:serial-link-transceiver.c **** /* IMPORTANT: Disable the "WDT Always On" fuse so that WDT can be turned off. */
+ 162:serial-link-transceiver.c ****     wdt_disable();     /* watchdog timer turn off ready for setup. */
+ 1360               	.LM186:
+ 1361 0380 88E1      		ldi r24,lo8(24)
+ 1362               	/* #APP */
+ 1363               	 ;  162 "serial-link-transceiver.c" 1
+ 1364 0382 0FB6      		in __tmp_reg__, __SREG__
+ 1365 0384 F894      		cli
+ 1366 0386 8093 6000 		sts 96, r24
+ 1367 038a 1092 6000 		sts 96, __zero_reg__
+ 1368 038e 0FBE      		out __SREG__,__tmp_reg__
+ 1369               		
+ 1370               	 ;  0 "" 2
+ 163:serial-link-transceiver.c ****     outb(WDTCR,0);
+ 1372               	.LM187:
+ 1373               	/* #NOAPP */
+ 1374 0390 1092 6000 		sts 96,__zero_reg__
+ 164:serial-link-transceiver.c **** /* Set the WDT with WDE clear, interrupts enabled, interrupt mode set, and
+ 165:serial-link-transceiver.c **** maximum timeout 8 seconds to give continuous interrupt mode. */
+ 166:serial-link-transceiver.c ****     sei();
+ 1376               	.LM188:
+ 1377               	/* #APP */
+ 1378               	 ;  166 "serial-link-transceiver.c" 1
+ 1379 0394 7894      		sei
+ 1380               	 ;  0 "" 2
+ 167:serial-link-transceiver.c **** //    outb(WDTCR,_BV(WDIE)|_BV(WDP3)|_BV(WDP0));
+ 168:serial-link-transceiver.c ****     outb(WDTCR,_BV(WDIE));  /* For test only: 32 ms timeout */
+ 1382               	.LM189:
+ 1383               	/* #NOAPP */
+ 1384 0396 80E4      		ldi r24,lo8(64)
+ 1385 0398 8093 6000 		sts 96,r24
+ 1386 039c 0895      		ret
+ 1388               	.Lscope16:
+ 1390               		.stabd	78,0,0
+ 1392               	.global	__vector_16
+ 1394               	__vector_16:
+ 1395               		.stabd	46,0,0
+ 169:serial-link-transceiver.c **** 
+ 170:serial-link-transceiver.c **** }
+ 171:serial-link-transceiver.c **** 
+ 172:serial-link-transceiver.c **** /****************************************************************************/
+ 173:serial-link-transceiver.c **** /** @brief Interrupt on RTC timer overflow
+ 174:serial-link-transceiver.c **** 
+ 175:serial-link-transceiver.c **** This ISR simply updates the RTC.
+ 176:serial-link-transceiver.c **** */
+ 177:serial-link-transceiver.c **** ISR(TIMER_INTERRUPT)
+ 178:serial-link-transceiver.c **** {
+ 1397               	.LM190:
+ 1398               	.LFBB17:
+ 1399 039e 1F92      		push r1
+ 1400 03a0 0F92      		push r0
+ 1401 03a2 0FB6      		in r0,__SREG__
+ 1402 03a4 0F92      		push r0
+ 1403 03a6 1124      		clr __zero_reg__
+ 1404 03a8 8F93      		push r24
+ 1405 03aa 9F93      		push r25
+ 1406 03ac AF93      		push r26
+ 1407 03ae BF93      		push r27
+ 1408               	/* prologue: Signal */
+ 1409               	/* frame size = 0 */
+ 1410               	/* stack size = 7 */
+ 1411               	.L__stack_usage = 7
+ 179:serial-link-transceiver.c ****   timeValue++;
+ 1413               	.LM191:
+ 1414 03b0 8091 0000 		lds r24,timeValue
+ 1415 03b4 9091 0000 		lds r25,timeValue+1
+ 1416 03b8 A091 0000 		lds r26,timeValue+2
+ 1417 03bc B091 0000 		lds r27,timeValue+3
+ 1418 03c0 0196      		adiw r24,1
+ 1419 03c2 A11D      		adc r26,__zero_reg__
+ 1420 03c4 B11D      		adc r27,__zero_reg__
+ 1421 03c6 8093 0000 		sts timeValue,r24
+ 1422 03ca 9093 0000 		sts timeValue+1,r25
+ 1423 03ce A093 0000 		sts timeValue+2,r26
+ 1424 03d2 B093 0000 		sts timeValue+3,r27
+ 1425               	/* epilogue start */
+ 180:serial-link-transceiver.c **** }
+ 1427               	.LM192:
+ 1428 03d6 BF91      		pop r27
+ 1429 03d8 AF91      		pop r26
+ 1430 03da 9F91      		pop r25
+ 1431 03dc 8F91      		pop r24
+ 1432 03de 0F90      		pop r0
+ 1433 03e0 0FBE      		out __SREG__,r0
+ 1434 03e2 0F90      		pop r0
+ 1435 03e4 1F90      		pop r1
+ 1436 03e6 1895      		reti
+ 1438               	.Lscope17:
+ 1440               		.stabd	78,0,0
+ 1441               		.local	checksum.1849
+ 1442               		.comm	checksum.1849,1,1
+ 1443               		.comm	timeValue,4,1
+ 1444               		.comm	checkSum,1,1
+ 1445               		.comm	lastError,1,1
+ 1446               		.comm	uartInput,2,1
+ 1447               		.comm	ctrl,10,1
+ 1448               		.comm	rf_rx_buffers,68,1
+ 1449               		.comm	rf_tx_buffer,35,1
+ 1458               	.Letext0:
+ 1459               		.ident	"GCC: (GNU) 4.8.2"
+ 1460               	.global __do_copy_data
+ 1461               	.global __do_clear_bss
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 serial-link-transceiver.c
-     /tmp/ccolhsum.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccolhsum.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccolhsum.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccolhsum.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccolhsum.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccolhsum.s:113    .text:0000000000000000 spi_data
-     /tmp/ccolhsum.s:180    .text:0000000000000022 rfm12_data
-     /tmp/ccolhsum.s:217    .text:0000000000000036 rfm12_read
-     /tmp/ccolhsum.s:267    .text:0000000000000060 rfm12_read_int_flags_inline
-     /tmp/ccolhsum.s:322    .text:0000000000000078 rfm12_data_inline
-     /tmp/ccolhsum.s:365    .text:0000000000000098 rfm12_read_fifo_inline
-     /tmp/ccolhsum.s:398    .text:00000000000000a6 spi_init
-     /tmp/ccolhsum.s:427    .text:00000000000000b0 __vector_2
+     /tmp/cc5UB7ae.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cc5UB7ae.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cc5UB7ae.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cc5UB7ae.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cc5UB7ae.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cc5UB7ae.s:113    .text:0000000000000000 spi_data
+     /tmp/cc5UB7ae.s:180    .text:0000000000000022 rfm12_data
+     /tmp/cc5UB7ae.s:217    .text:0000000000000036 rfm12_read
+     /tmp/cc5UB7ae.s:267    .text:0000000000000060 rfm12_read_int_flags_inline
+     /tmp/cc5UB7ae.s:322    .text:0000000000000078 rfm12_data_inline
+     /tmp/cc5UB7ae.s:365    .text:0000000000000098 rfm12_read_fifo_inline
+     /tmp/cc5UB7ae.s:398    .text:00000000000000a6 spi_init
+     /tmp/cc5UB7ae.s:427    .text:00000000000000b0 __vector_2
                             *COM*:000000000000000a ctrl
-                             .bss:0000000000000000 checksum.1838
+                             .bss:0000000000000000 checksum.1849
                             *COM*:0000000000000044 rf_rx_buffers
                             *COM*:0000000000000023 rf_tx_buffer
-     /tmp/ccolhsum.s:671    .text:00000000000001fc rfm12_tick
-     /tmp/ccolhsum.s:741    .text:0000000000000240 rfm12_start_tx
-     /tmp/ccolhsum.s:791    .text:0000000000000266 rfm12_tx
-     /tmp/ccolhsum.s:876    .text:00000000000002b8 rfm12_rx_clear
-     /tmp/ccolhsum.s:922    .text:00000000000002e8 rfm12_init
-     /tmp/ccolhsum.s:1075   .text.startup:0000000000000000 main
-     /tmp/ccolhsum.s:1328   .text:000000000000037e hardwareInit
-     /tmp/ccolhsum.s:1347   .text:0000000000000380 wdtInit
-     /tmp/ccolhsum.s:1391   .text:000000000000039e __vector_9
+     /tmp/cc5UB7ae.s:671    .text:00000000000001fc rfm12_tick
+     /tmp/cc5UB7ae.s:741    .text:0000000000000240 rfm12_start_tx
+     /tmp/cc5UB7ae.s:791    .text:0000000000000266 rfm12_tx
+     /tmp/cc5UB7ae.s:876    .text:00000000000002b8 rfm12_rx_clear
+     /tmp/cc5UB7ae.s:922    .text:00000000000002e8 rfm12_init
+     /tmp/cc5UB7ae.s:1075   .text.startup:0000000000000000 main
+                            *COM*:0000000000000004 timeValue
+     /tmp/cc5UB7ae.s:1333   .text:000000000000037e hardwareInit
+     /tmp/cc5UB7ae.s:1350   .text:0000000000000380 wdtInit
+     /tmp/cc5UB7ae.s:1394   .text:000000000000039e __vector_16
                             *COM*:0000000000000001 checkSum
                             *COM*:0000000000000001 lastError
                             *COM*:0000000000000002 uartInput
@@ -2573,6 +2597,7 @@ DEFINED SYMBOLS
 UNDEFINED SYMBOLS
 memcpy
 uartInit
+timer0Init
 sendch
 __do_copy_data
 __do_clear_bss
