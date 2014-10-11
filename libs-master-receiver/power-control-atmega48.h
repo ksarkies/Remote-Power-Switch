@@ -8,7 +8,8 @@
 *
 * Target platform   : ATMega48
 *
-* Microcontroller settings for specific device
+* Microcontroller settings for the ATMega48 AVR microcontroller as used in the
+master receiver board.
 */
 /***************************************************************************
  *   Copyright (C) 2011 by Ken Sarkies                                     *
@@ -48,9 +49,9 @@
 - Port C 6   Reset
 */
 
-/** @name Microcontroller SPI port settings. These need
-not be the hardware SPI port, which could be reserved
-for firmware updates. */
+/** @name Microcontroller settings for RFM01 control pins and software SPI port
+settings. These need not be the hardware SPI port, which could be reserved for
+firmware updates. */
 /*@{*/
 #define SPI_PORT    PORTD
 #define SPI_PIN     PIND
@@ -64,22 +65,8 @@ for firmware updates. */
 #define SDI         7
 /*@}*/
 
-/** RTC configuration register settings */
-#define TCOUNT         TCNT2
-#define TIMER_CONT_REG TCCR2B
-#define TIMER_MASK_REG TIMSK2
-#define TIMER_FLAG_REG TIFR2
-#define TOV            TOV2
-#define TOIE           TOIE2
-
 #define REC_INTERRUPT   INT1_vect
-#define TIMER_INTERRUPT TIMER2_OVF_vect
-
-void hardwareInit(void);
-void snooze(void);
-void setSwitch(uint8_t bestData);
-void clearSwitches(void);
-void resetTimer(void);
+#define TIMER_INTERRUPT TIMER0_OVF_vect
 
 #endif
 

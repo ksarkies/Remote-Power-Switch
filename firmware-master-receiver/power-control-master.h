@@ -8,9 +8,7 @@
 *
 * Target platform   : ATMega48
 *
-* HopeRf RFM01 FSK Wireless Module Library
-* The RF02 is a transmitter chip and its command set differs
-* from the RF01 and RF02 command sets.
+* Parameter settings for the HopeRF RFM01.
 */
 /***************************************************************************
  *   Copyright (C) 2011 by Ken Sarkies                                     *
@@ -37,59 +35,123 @@
 #ifndef _POWER_CONTROL_MASTER_H_
 #define _POWER_CONTROL_MASTER_H_
 
-#include <inttypes.h>
-
-/**********************************************************/
-/** @name RFM01 SPI commands */
+/** @name RFM01 Receiver Parameters specific for this application */
 /*@{*/
-#define RFM01_CMD_CONFIG        0x8000
-#define RFM01_CMD_FREQ          0xA000
-#define RFM01_CMD_RECV	        0xC000
-#define RFM01_CMD_BATT          0xC200
-#define RFM01_CMD_AFC           0xC600
-#define RFM01_CMD_BFILT         0xC420
-#define RFM01_CMD_RATE			0xC800
-#define RFM01_CMD_FIFO          0xCE00
-#define RFM01_CMD_WAKEUP		0xE000
-#define RFM01_CMD_STATUS_READ	0x0000
-/*@}*/
-/** @name
-RFM01 Configuration Bits
-- bit 0   disable clock out
-- bit 8   enable crystal oscillator
-- bit 9   enable wakeup timer
-- bit 10  enable low battery detector */
-/*@{*/
-#define RFM01_PMBIT_CKOUT       _BV(0)
-#define RFM01_PMBIT_OSC         _BV(8)
-#define RFM01_PMBIT_TIMER       _BV(9)
-#define RFM01_PMBIT_BATT        _BV(10)
+/** Band is 434MHz, required by the hardware (POR 433MHz)
+-    1  434
+-    2  868
+-    3  915 */
+#define RF_BAND                      1
+/** crystal load capacitance for the selected crystal, (POR 10pF)
+    0000 is 8.5pF, increment in 0.5pF steps to maximum 15 (16pF). */
+#define CRYSTAL_LOAD_CAPACITANCE     6
+/** Baseband Filter Bandwidth 67kHz (POR 5 = 134kHz)
+-    1  400kHz
+-    2  340kHz
+-    3  270kHz
+-    4  200kHz
+-    5  134kHz
+-    6   67kHz */
+#define BASEBAND_BW                  6
+/** clock output frequency (used for external clock to microcontroller etc)
+-    0  1.00MHz
+-    1  1.25MHz
+-    2  1.66MHz
+-    3  2.00MHz
+-    4  2.50MHz
+-    5  3.33MHz
+-    6  5.00MHz
+-    7 10.00MHz */
+#define CLOCK_FREQ_OUT               7
+/** Carrier frequency to exactly 433MHz (POR 0x680, 438.96MHz)
+Carrier frequency F, a 12 bit value between 96 and 3903 giving centre frequency
+        f0 = 10MHz * C1 * (C2 + F/4000)
+where C1/C2 are 1/43, 2/43 or 3/30 for bands 433, 868 and 915 respectively.
+That is steps of 2.5kHz for the 433 and 868 RFM01_PM_SETTINGS bands, and 7.5kHz for the 915kHz band. */
+#define CARRIER                   1200
+/** Valid data indicator source (POR 3 - always on)
+-    0  Digital RSSI output
+-    1  Data Quality Detector
+-    2  Clock recovery lock
+-    3  Always on */
+#define VDI_SOURCE                   1
+/** Low Noise Amplifier gain (POR 1 = -6dB)
+-    0   0dB
+-    1  -6dB
+-    2  -14dB
+-    3  -20dB */
+#define LNA_GAIN                     0
+/** Digital RSSI Threshold (0-7), increments by 6dB from -103dB (POR 0 = -103dB)
+(actual threshold must add the (negative) lna gain) */
+#define RSSI_THRESHOLD               0
+/** AFC frequency offset measurement (POR 3 = keep independent of VDI)
+-    0  off
+-    1  Run once after power up
+-    2  Keep value while receiving
+-    3  Keep value independently of VDI */
+#define AFC_MODE                     2
+/** Frequency offset range limit plus and minus (POR 3 = 4 x fres)
+-    0  off
+-    1 16 x fres
+-    2  8 x fres
+-    3  4 x fres
+where freq is 2.5kHz for 315/433MHz, 5kHz for 868MHz and 7.5kHz for 916MHz bands.*/
+#define AFC_RANGE                    3
+/** Data Filter and Clock Recovery Enables (POR 00 = slow mode)
+-    bit 0  Fast Mode enable
+-    bit 1  Automatic mode (fast then drop to slow mode) */
+#define DCR_ENABLE                   2
+/** Type of Data Filter  (POR 1 = digital, only choice available)
+-    0      OOK to filter
+-    1      Digital
+-    3      Analogue */
+#define DCR_TYPE                     1
+/** Data Quality Detector Threshold (0-7). This counts the number of correct
+transitions at the I/Q output/ This should be 4 if the bit rate is close
+to the deviation. Set above 4 if bitrate not close to deviation (POR 4). */
+#define DCR_DQDTHRESH                4
+/** Enable the FIFO (POR 0,1)
+-    bit 0  Enable 16 bit deep FIFO mode
+-    bit 1  Enable FIFO start after syncron detection 0x2DD4. Clear to reset FIFO. */
+#define FIFO_ENABLE                  1
+/** FIFO fill start source (POR 1 = syncron word)
+-    0  VDI
+-    1  Syncron 0x2DD4
+-    3  Always */
+#define FIFO_START                   1
+/** FIFO Interrupt Trigger level (0-16 bits) (POR 8) */
+#define FIFO_TRIGGER                 8
+/** Expected data bitrate being received, 9600 baud. Must match the Tx bitrate */
+#define BIT_RATE                  0x23
+/** Low battery voltage setting (OR with disable timer calibration if needed)*/
+#define LBAT_LOWBATT              0x00
+/** Wakeup period (not used) */
+#define WAKEUP_EXPONENT           0x00
+#define WAKEUP_DELAY              0x00
 /*@}*/
 
-/** @name
-RFM01 AFC Enable Settings
-- bit 0  enable addition of frequency offset register to the PLL
-- bit 1  enable frequency offset register
-- bit 2  enable high accuracy mode
-- bit 3  force addition of frequency offset register to the PLL (must be reset to zero afterwards) */
+/** @name Complete command words */
 /*@{*/
-#define RFM01_AFC_CALC_ENABLE   _BV(0)
-#define RFM01_AFC_OUTPUT_ENABLE _BV(1)
-#define RFM01_AFC_FINE_ENABLE   _BV(2)
-#define RFM01_AFC_FORCE_ENABLE  _BV(3)
+#define CONFIGURATION   RFM01_CMD_CONFIG | ((RF_BAND & 0x03) << 11) | ((CRYSTAL_LOAD_CAPACITANCE & 0x0F) << 4) | ((BASEBAND_BW & 0x07) << 1) | RFM01_PMBIT_OSC | RFM01_PMBIT_CKOUT
+#define FREQUENCY       RFM01_CMD_FREQ   | (CARRIER & 0xFFF)
+#define RECEIVER        RFM01_CMD_RECV   | ((VDI_SOURCE & 0x03) << 6) | ((LNA_GAIN & 0x03) << 4) | ((RSSI_THRESHOLD & 0x07) << 1)
+#define BATTERY         RFM01_CMD_BATT   | ((CLOCK_FREQ_OUT & 0x07) << 5) | (LBAT_LOWBATT & 0x1F)
+#define AFC             RFM01_CMD_AFC    | ((AFC_MODE & 0x03) << 6) | ((AFC_RANGE & 0x03) << 4) | RFM01_AFC_FINE_ENABLE | RFM01_AFC_OUTPUT_ENABLE | RFM01_AFC_CALC_ENABLE | RFM01_AFC_FORCE_ENABLE
+#define BASEFILTER      RFM01_CMD_BFILT  | ((DCR_ENABLE & 0x03) << 6) | ((DCR_TYPE & 0x03) << 3) | (DCR_DQDTHRESH & 0x07)
+#define DATARATE        RFM01_CMD_RATE   | (BIT_RATE & 0x0FF)
+#define FIFO            RFM01_CMD_FIFO   | ((FIFO_TRIGGER & 0x0F) << 4) | ((FIFO_START & 0x03) << 2) | (FIFO_ENABLE & 0x03)
+#define WAKEUP          RFM01_CMD_WAKEUP | ((WAKEUP_EXPONENT & 0x1F) << 8) | (WAKEUP_DELAY & 0xFF)       
 /*@}*/
 
-/** @name RFM01 Output and FIFO Mode Enables */
-/*@{*/
-#define RFM01_FIFO_ENABLE       _BV(0)
-#define RFM01_FIFO_SYNCHRON_EN  _BV(1)
-/*@}*/
-
-void receiverConfigure(void);
-void resetFIFO(void);
-uint16_t writeCMD(uint16_t command, uint8_t n);
-uint16_t readDataByte(void);
-void writeSPI(uint8_t n);
-void initSPI(void);
+/* Wilhelm Krug settings
+#define CONFIGURATION   0x896C
+#define FREQUENCY       0xA4B0
+#define RECEIVER        0xC080
+#define BATTERY         0xC2C0
+#define AFC             0xC6BF
+#define BASEFILTER      0xC4AC
+#define DATARATE        0xC891
+#define FIFO            0xCE89
+*/
 
 #endif //_POWER_CONTROL_MASTER_H_

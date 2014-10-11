@@ -38,80 +38,72 @@
 #ifndef _POWER_CONTROL_REMOTE_H_
 #define _POWER_CONTROL_REMOTE_H_
 
-/**********************************************************/
-/** @name RFM01 SPI commands */
+/** SPI Clock Timing */
+#define SPI_DELAY 1
+
+/** @name RFM02 Transmitter parameters c */
 /*@{*/
 
-#define RFM02_CMD_CONFIG		0x8000
-#define RFM02_CMD_POWERMGMT		0xC000
-#define RFM02_CMD_FREQ			0xA000
-#define RFM02_CMD_RATE			0xC800
-#define RFM02_CMD_POWER_SET		0xB0
-#define RFM02_CMD_SYNC          0xC200
-#define RFM02_CMD_SLEEP     	0xC400
-#define RFM02_CMD_WAKEUP		0xE000
-#define RFM02_CMD_DATA_TX		0xC6
-#define RFM02_CMD_STATUS_READ	0xCC00
-/*@}*/
-/** @name
-RF02 Power Management Bits
-- bit 0   enable clock out
-- bit 1   enable wakeup timer
-- bit 2   enable low battery detector
-- bit 3   enable power amplifier
-- bit 4   enable synthesizer
-- bit 5   enable crystal oscillator
-- bit 6   automatically power up amplifier (bit 3 must be 0)
-- bit 7   automatically power up crystal oscillator and
-        synthesizer (bits 4,5 must be 0).*/
-/*@{*/
-#define RFM02_PMBIT_OSC         _BV(5)
-#define RFM02_PMBIT_SYNTH       _BV(4)
-#define RFM02_PMBIT_AMP         _BV(3)
-#define RFM02_PMBIT_BATT        _BV(2)
-#define RFM02_PMBIT_TIMER       _BV(1)
-#define RFM02_PMBIT_CKOUT       _BV(0)
-/*@}*/
-/** @name
-RFM02 TX Sync and Low Battery setting Bits */
-/*@{*/
-#define RFM02_TXSYN_DISTIMCAL   _BV(7)
-#define RFM02_TXSYN_TXSYNC      _BV(5)
-/*@}*/
-/** @name
-PLL bandwidth modes. Higher bandwidth allows higher data
-rate but more phase noise (POR 2 ??).
-- 0 D240h   19.2
-- 1 D2C0h   38.4
-- 2 D200h   68.9
-- 3 D280h  115.2 */
-/*@{*/
-#define RFM02_PLL_MODE1             0xD240
-#define RFM02_PLL_MODE2             0xD2C0
-#define RFM02_PLL_MODE3             0xD200
-#define RFM02_PLL_MODE4             0xD280
+/** Band is 433MHz (POR 0 = 315MHz) */
+#define RF_BAND                      1
+/** clock output frequency (used for external clock to microcontroller etc) (POR 0 = 1MHz)
+-    0  1.00MHz
+-    1  1.25MHz
+-    2  1.66MHz
+-    3  2.00MHz
+-    4  2.50MHz
+-    5  3.33MHz
+-    6  5.00MHz
+-    7 10.00MHz */
+#define CLOCK_FREQ_OUT               7
+/** crystal load capacitance for the selected crystal,
+    0000 is 8.5pF, increment in 0.5pF steps to maximum 15 (16pF) (POR 8 = 12.5pF). */
+#define CRYSTAL_LOAD_CAPACITANCE     6
+/** FSK Deviation is set (POR 0 = 30kHz)*/
+#define DEVIATION                    0
+/** This bit rate is close to 9600 baud */
+#define BIT_RATE                  0x23
+/** Relative output power dB (POR 0 = 0dB) */
+#define POWER                        0
+/** Carrier frequency to exactly 433 MHz (POR 7D0 (2000) = 435MHz
+Carrier frequency F, a 12 bit value between 96 and 3903 giving centre frequency
+        f0 = 10MHz * C1 * (C2 + F/4000)
+where C1/C2 are 1/43, 2/43 or 3/30 for bands 433, 868 and 915 respectively.
+That is steps of 2.5kHz for the 433 and 868 RFM01_PM_SETTINGS bands,
+and 7.5kHz for the 915kHz band. */
+#define CARRIER                   1200
+/** Low battery voltage setting (OR with disable timer calibration if needed)*/
+#define TXSYN_LOWBATT             0x00
+/** Power Management settings for the timer, battery and clock out. */
+#define PM_SETTINGS_DEFAULT       RFM02_PMBIT_CKOUT
+/** Sleep clock turnoff delay (POR 0x10) */
+#define SLEEP_DELAY               0x00
+/** Wakeup period (POR 0) (not used here) */
+#define WAKEUP_EXPONENT           0x00
+#define WAKEUP_DELAY              0x00
 /*@}*/
 
-/**********************************************************/
-/* Sets the Configuration of the Transmitter for RFM02 */
-void rfm02Configure(void);
-/* Write a Command to the RFM02 over SPI */
-uint16_t writeCMD(uint16_t command, uint8_t n);
-/* Start Transmission of Data to the RFM02 over SD */
-void startDataTx(uint8_t dataRate);
-/* Write a Data Start Command to the RFM02 over SPI */
-void writeDataCMD(void);
-/* Transmit Byte Data to the RFM02 over SDI */
-void writeByteTx(uint8_t data);
-/* End Transmission of Data to the RFM02 over SDI */
-void stopDataTx(void);
-/* Bitbang the data on the SPI */
-void writeSPI(uint8_t n);
-/* Initialize the SPI interface */
-void initSPI(void);
-/* Single scan for the pressed key */
-uint8_t scan(void);
-/* Initialize the keypad scan ports */
-void initKbd(void);
+/** @name Complete command words */
+/*@{*/
+#define CONFIGURATION   RFM02_CMD_CONFIG | ((RF_BAND & 0x03) << 11) | ((CLOCK_FREQ_OUT & 0x07) << 8) | ((CRYSTAL_LOAD_CAPACITANCE & 0x0F) << 4) | (DEVIATION & 0x0F)
+#define POWERSET        RFM02_CMD_POWER_SET | (POWER & 0x07)
+#define FREQUENCY       RFM02_CMD_FREQ | (CARRIER & 0xFFF)
+#define PLL_MODE        RFM02_PLL_MODE1
+#define WAKEUP          RFM02_CMD_WAKEUP | ((WAKEUP_EXPONENT & 0x1F) << 8) | (WAKEUP_DELAY & 0xFF)
+#define POWERMANAGE     RFM02_CMD_POWERMGMT | (PM_SETTINGS_DEFAULT & 0xFF)
+#define DATARATE        RFM02_CMD_RATE | (BIT_RATE & 0xFF)
+#define TX_SYNC         RFM02_CMD_SYNC | RFM02_TXSYN_DISTIMCAL | RFM02_TXSYN_TXSYNC | (TXSYN_LOWBATT & 0x1F)
+#define SLEEP           RFM02_CMD_SLEEP | SLEEP_DELAY
+/*@}*/
+
+/* Wilhelm Krug settings
+#define CONFIGURATION   0x8E60
+#define POWERSET        0xB0
+#define FREQUENCY       0xA4B0
+#define PLL_MODE        0xD240
+#define POWERMANAGE     0xC020
+#define DATARATE        0xC88F
+#define TX_SYNC         0xC220
+*/
 
 #endif

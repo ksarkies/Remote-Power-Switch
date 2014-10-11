@@ -3,26 +3,29 @@
  Title  :   C  include file for the Timer Functions library
  Author:    Ken Sarkies
  File:      $Id: timer.h, v 0.1 25/4/2007 $
- Software:  AVR-GCC 3.8.2
+ Software:  AVR-GCC 3.4.5
  Target:    All AVR MCUs with timer functionality.
- Tested:    ATMega168
 */
-/****************************************************************************
- *   Copyright (C) 2013 by Ken Sarkies ksarkies@internode.on.net            *
- *                                                                          *
- *   This file is part of XBee-Acquisition                                  *
- *                                                                          *
- * Licensed under the Apache License, Version 2.0 (the "License");          *
- * you may not use this file except in compliance with the License.         *
- * You may obtain a copy of the License at                                  *
- *                                                                          *
- *     http://www.apache.org/licenses/LICENSE-2.0                           *
- *                                                                          *
- * Unless required by applicable law or agreed to in writing, software      *
- * distributed under the License is distributed on an "AS IS" BASIS,        *
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. *
- * See the License for the specific language governing permissions and      *
- * limitations under the License.                                           *
+/***************************************************************************
+ *   Copyright (C) 2007 by Ken Sarkies                                     *
+ *   ksarkies@trinity.asn.au                                               *
+ *                                                                         *
+ *   This file is part of Acquisition                                      *
+ *                                                                         *
+ *   Acquisition is free software; you can redistribute it and/or modify   *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   Acquisition is distributed in the hope that it will be useful,        *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with Acquisition if not, write to the                           *
+ *   Free Software Foundation, Inc.,                                       *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.             *
  ***************************************************************************/
 
 #ifndef TIMER_H
@@ -32,6 +35,10 @@
 #define  _SFR_ASM_COMPAT     1
 #endif
 
+#ifndef F_CPU               /* CPU speed in Hz */
+#define F_CPU               8000000
+#endif
+
 /** Define this to allow code size to be reduced by removal of unwanted
 functions. Any or all may be used. */
 #ifndef TIMER_INTERRUPT_MODE    /* Interrupts are used */
@@ -39,6 +46,9 @@ functions. Any or all may be used. */
 #endif
 
 /****************************************************************************/
+extern void timer0Init(uint8_t mode,uint16_t timerClockScale);
+extern uint16_t timer0Read(void);
+
 /** Deal with ATMega*8 MCUs and others with 16 bit control registers */
 #if defined TCCR0
 #define TIMER_CONT_REG0 TCCR0

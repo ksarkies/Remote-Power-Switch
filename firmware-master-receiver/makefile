@@ -39,8 +39,9 @@ OPT = 2
 TARGET = power-control-master
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c power-control-atmega48.c
-#SRC = $(TARGET).c uart/uart.c timer/timer.c twi/i2c.c adc/adc.c
+SRC = $(TARGET).c
+SRC += ../libs-master-receiver/power-control-atmega48.c
+SRC += ../libs-master-receiver/timer.c
 
 
 # List Assembler source files here.

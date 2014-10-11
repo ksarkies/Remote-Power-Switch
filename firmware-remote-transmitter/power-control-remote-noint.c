@@ -34,7 +34,7 @@ Tested:   ATMega48, ATTiny2313 at 8MHz internal clock.
  */
 /***************************************************************************
  *   Copyright (C) 2010 by Ken Sarkies                                     *
- *   ksarkies@trinity.asn.au                                               *
+ *   ksarkies@internode.on.net                                             *
  *                                                                         *
  *   This file is part of Power Controller                                 *
  *                                                                         *

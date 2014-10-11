@@ -54,6 +54,7 @@ this as the datasheets are vague on this point.
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
+#include "defines-M48.h"
 #include "power-control-atmega48.h"
 
 /** Convenience macros (we don't use them all) */
@@ -69,78 +70,4 @@ this as the datasheets are vague on this point.
 #define high(x) ((uint8_t) (x >> 8) & 0xFF)
 #define low(x) ((uint8_t) (x & 0xFF))
 
-/****************************************************************************/
-/** @brief Initialize the hardware.
-*/
-void hardwareInit(void)
-{
-/** Power down Timers 0,1, TWI, SPI, ADC and USART */
-    outb(PRR,0xBF);
-/** We use Interrupt 1 with level triggering for power save mode */
-    sbi(EIMSK,INT1);                /* Enable Interrupt 1 */
-    cbi(EICRA,ISC11);               /* Set level trigger on interrupt 1 */
-    cbi(EICRA,ISC10);
-/** Set control ports as outputs */
-    outb(DDRC,inb(DDRC) | 0x3F);
-    outb(DDRB,inb(DDRB) | 0x07);
-    outb(DDRD,inb(DDRD) | 0x04);
-    sei();                          /* Enable global interrupts */
-}
-/****************************************************************************/
-/** @brief Reset the Timer.
-
-A scale factor 5 is used to select a clock divide of 1024. The timer
-used is defined in the header.
-*/
-void resetTimer(void)
-{
-/** Set timer to FCPU/1024 which is about 30.5 overflows per second. */
-    outb(TIMER_CONT_REG,((inb(TIMER_CONT_REG) & 0xF8) | 5));
-    outb(TCOUNT,0);                 /* Clear the register */
-    sbi(TIMER_FLAG_REG, TOV);       /* Force clear the overflow interrupt flag */
-    sbi(TIMER_MASK_REG, TOIE);      /* Enable the overflow interrupt */
-}
-/****************************************************************************/
-/** @brief Send processor to sleep and manage interrupts.
-
-This function is called at the beginning of every processing loop. The INT1
-is enabled before sleeping, and disabled after wakeup.
-*/
-void snooze(void)
-{
-    sei();                              /* Enable global interrupts */
-    sbi(EIMSK,INT1);                    /* Enable Interrupt 1 */
-    set_sleep_mode(SLEEP_MODE_PWR_SAVE);
-    sleep_mode();                       /* Enter sleep mode */
-    cbi(EIMSK,INT1);                    /* Disable Interrupt 1 */
-}
-/****************************************************************************/
-/** @brief Manage the power switching.
-
-Adapt the switches 0-9 to the actual microcontroller port outputs.
-
-@param[in] uint8_t bestData. The number of the switch to toggle.
-*/
-void setSwitch(uint8_t bestData)
-{
-    uint16_t bestBit = (1 << bestData);
-/* The lower 4 bits of PORTC are the first four ports */
-    if (bestData < 4) outb(PORTC,inb(PORTC) ^ bestBit);
-/* The lower 3 bits of PORTB are the next three ports */
-    else if (bestData < 7) outb(PORTB,inb(PORTB) ^ (bestBit >> 4));
-/* Bit 2 of PORTD is the eighth port */
-    else if (bestData == 7) outb(PORTD,inb(PORTD) ^ 4);
-/* Bits 4,5 of PORTC are the ninth and tenth ports */
-    else if (bestData < 10) outb(PORTC,inb(PORTC) ^ (bestBit >> 4));
-}
-/****************************************************************************/
-/** @brief Turn off all power switching.
-*/
-void clearSwitches(void)
-{
-    outb(PORTC,(inb(PORTC) & ~0x3F));
-    outb(PORTB,(inb(PORTB) & ~0x07));
-    outb(PORTD,(inb(PORTD) & ~0x04));
-}
-/****************************************************************************/
 

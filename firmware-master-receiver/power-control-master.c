@@ -32,7 +32,7 @@ Tested:   ATMega48 at 8MHz internal clock.
  */
 /***************************************************************************
  *   Copyright (C) 2011 by Ken Sarkies                                     *
- *   ksarkies@trinity.asn.au                                               *
+ *   ksarkies@internode.on.net                                             *
  *                                                                         *
  *   This file is part of Power Controller                                 *
  *                                                                         *
@@ -62,11 +62,11 @@ Tested:   ATMega48 at 8MHz internal clock.
 #include <avr/sleep.h>
 #include <util/delay.h>
 #include "power-control-master.h"
-#if defined __AVR_ATmega48__
-    #include "power-control-atmega48.h"
-#else
-    #error "Unsupported MPU"
-#endif
+#include "../libs-master-receiver/defines-M48.h"
+#include "../libs-master-receiver/power-control-atmega48.h"
+#include "../libs-master-receiver/timer.h"
+#include "../libs-master-receiver/rfm01.h"
+#include "../libs-master-receiver/rfm01.c"
 
 /** Convenience macros (we don't use them all) */
 #define TRUE 1
@@ -81,144 +81,30 @@ Tested:   ATMega48 at 8MHz internal clock.
 #define high(x) ((uint8_t) (x >> 8) & 0xFF)
 #define low(x) ((uint8_t) (x & 0xFF))
 
-/** SPI Clock Timing */
-#define SPI_DELAY 1
-
-/** @name RFM01 Receiver Parameters specific for this application */
-/*@{*/
-/** Band is 434MHz, required by the hardware (POR 433MHz)
--    1  434
--    2  868
--    3  915 */
-#define RF_BAND                      1
-/** crystal load capacitance for the selected crystal, (POR 10pF)
-    0000 is 8.5pF, increment in 0.5pF steps to maximum 15 (16pF). */
-#define CRYSTAL_LOAD_CAPACITANCE     6
-/** Baseband Filter Bandwidth 67kHz (POR 5 = 134kHz)
--    1  400kHz
--    2  340kHz
--    3  270kHz
--    4  200kHz
--    5  134kHz
--    6   67kHz */
-#define BASEBAND_BW                  6
-/** clock output frequency (used for external clock to microcontroller etc)
--    0  1.00MHz
--    1  1.25MHz
--    2  1.66MHz
--    3  2.00MHz
--    4  2.50MHz
--    5  3.33MHz
--    6  5.00MHz
--    7 10.00MHz */
-#define CLOCK_FREQ_OUT               7
-/** Carrier frequency to exactly 433MHz (POR 0x680, 438.96MHz)
-Carrier frequency F, a 12 bit value between 96 and 3903 giving centre frequency
-        f0 = 10MHz * C1 * (C2 + F/4000)
-where C1/C2 are 1/43, 2/43 or 3/30 for bands 433, 868 and 915 respectively.
-That is steps of 2.5kHz for the 433 and 868 RFM01_PM_SETTINGS bands, and 7.5kHz for the 915kHz band. */
-#define CARRIER                   1200
-/** Valid data indicator source (POR 3 - always on)
--    0  Digital RSSI output
--    1  Data Quality Detector
--    2  Clock recovery lock
--    3  Always on */
-#define VDI_SOURCE                   1
-/** Low Noise Amplifier gain (POR 1 = -6dB)
--    0   0dB
--    1  -6dB
--    2  -14dB
--    3  -20dB */
-#define LNA_GAIN                     0
-/** Digital RSSI Threshold (0-7), increments by 6dB from -103dB (POR 0 = -103dB)
-(actual threshold must add the (negative) lna gain) */
-#define RSSI_THRESHOLD               0
-/** AFC frequency offset measurement (POR 3 = keep independent of VDI)
--    0  off
--    1  Run once after power up
--    2  Keep value while receiving
--    3  Keep value independently of VDI */
-#define AFC_MODE                     2
-/** Frequency offset range limit plus and minus (POR 3 = 4 x fres)
--    0  off
--    1 16 x fres
--    2  8 x fres
--    3  4 x fres
-where freq is 2.5kHz for 315/433MHz, 5kHz for 868MHz and 7.5kHz for 916MHz bands.*/
-#define AFC_RANGE                    3
-/** Data Filter and Clock Recovery Enables (POR 00 = slow mode)
--    bit 0  Fast Mode enable
--    bit 1  Automatic mode (fast then drop to slow mode) */
-#define DCR_ENABLE                   2
-/** Type of Data Filter  (POR 1 = digital, only choice available)
--    0      OOK to filter
--    1      Digital
--    3      Analogue */
-#define DCR_TYPE                     1
-/** Data Quality Detector Threshold (0-7). This counts the number of correct
-transitions at the I/Q output/ This should be 4 if the bit rate is close
-to the deviation. Set above 4 if bitrate not close to deviation (POR 4). */
-#define DCR_DQDTHRESH                4
-/** Enable the FIFO (POR 0,1)
--    bit 0  Enable 16 bit deep FIFO mode
--    bit 1  Enable FIFO start after syncron detection 0x2DD4. Clear to reset FIFO. */
-#define FIFO_ENABLE                  1
-/** FIFO fill start source (POR 1 = syncron word)
--    0  VDI
--    1  Syncron 0x2DD4
--    3  Always */
-#define FIFO_START                   1
-/** FIFO Interrupt Trigger level (0-16 bits) (POR 8) */
-#define FIFO_TRIGGER                 8
-/** Expected data bitrate being received, 9600 baud. Must match the Tx bitrate */
-#define BIT_RATE                  0x23
-/** Low battery voltage setting (OR with disable timer calibration if needed)*/
-#define LBAT_LOWBATT              0x00
-/** Wakeup period (not used) */
-#define WAKEUP_EXPONENT           0x00
-#define WAKEUP_DELAY              0x00
-/*@}*/
-
-/** @name Complete command words */
-/*@{*/
-#define CONFIGURATION   RFM01_CMD_CONFIG | ((RF_BAND & 0x03) << 11) | ((CRYSTAL_LOAD_CAPACITANCE & 0x0F) << 4) | ((BASEBAND_BW & 0x07) << 1) | RFM01_PMBIT_OSC | RFM01_PMBIT_CKOUT
-#define FREQUENCY       RFM01_CMD_FREQ   | (CARRIER & 0xFFF)
-#define RECEIVER        RFM01_CMD_RECV   | ((VDI_SOURCE & 0x03) << 6) | ((LNA_GAIN & 0x03) << 4) | ((RSSI_THRESHOLD & 0x07) << 1)
-#define BATTERY         RFM01_CMD_BATT   | ((CLOCK_FREQ_OUT & 0x07) << 5) | (LBAT_LOWBATT & 0x1F)
-#define AFC             RFM01_CMD_AFC    | ((AFC_MODE & 0x03) << 6) | ((AFC_RANGE & 0x03) << 4) | RFM01_AFC_FINE_ENABLE | RFM01_AFC_OUTPUT_ENABLE | RFM01_AFC_CALC_ENABLE | RFM01_AFC_FORCE_ENABLE
-#define BASEFILTER      RFM01_CMD_BFILT  | ((DCR_ENABLE & 0x03) << 6) | ((DCR_TYPE & 0x03) << 3) | (DCR_DQDTHRESH & 0x07)
-#define DATARATE        RFM01_CMD_RATE   | (BIT_RATE & 0x0FF)
-#define FIFO            RFM01_CMD_FIFO   | ((FIFO_TRIGGER & 0x0F) << 4) | ((FIFO_START & 0x03) << 2) | (FIFO_ENABLE & 0x03)
-#define WAKEUP          RFM01_CMD_WAKEUP | ((WAKEUP_EXPONENT & 0x1F) << 8) | (WAKEUP_DELAY & 0xFF)       
-/*@}*/
-
-/* Wilhelm Krug settings
-#define CONFIGURATION   0x896C
-#define FREQUENCY       0xA4B0
-#define RECEIVER        0xC080
-#define BATTERY         0xC2C0
-#define AFC             0xC6BF
-#define BASEFILTER      0xC4AC
-#define DATARATE        0xC891
-#define FIFO            0xCE89
-*/
-
 /*****************************************************************************/
 /* Global Variables */
 
-uint16_t lastRfm01Status = 0;
 /** Set of 12 byte bins to count data received values. These will be used to
 determine the median data value after a number of valid receives. */
 uint8_t dataCount[12];
 /** Real Time Clock Global Variable, ticks are 30.5 per second */
 uint32_t timeValue;
+
+/*****************************************************************************/
+/* Local Prototypes */
+
+void hardwareInit(void);
+void wdtInit(void);
+void snooze(void);
+void setSwitch(uint8_t bestData);
+void clearSwitches(void);
 /*****************************************************************************/
 /** @brief Main Program */
 
 int main(void)
 {
     hardwareInit();                 /* Initialize the processor specific hardware */
-    resetTimer();                   /* Configure the timer */
+    timer0Init(0,5);                /* Configure the timer */
     timeValue = 0;                  /* reset timer */
     initSPI();
     receiverConfigure();            /* Initialize the receiver */
@@ -252,7 +138,7 @@ allow other control commands to be activated. */
                 validData = 0;
                 for (uint8_t bin=0; bin < 12; bin++) dataCount[bin] = 0;
             }
-            resetTimer();
+            timer0Init(0,5);
             timeValue = 0;                  /* reset timer */
             data = low(receiverStatus);
             resetFIFO();
@@ -291,176 +177,85 @@ existing value of the port. */
 }
 
 /****************************************************************************/
-/** @brief Set the Configuration of the Transmitter for RFM01.
-
-Not all parameters are configurable. The wakeup timer, low battery and the
-clock out are disabled. The transmitter chain is powered off.
+/** @brief Initialize the hardware.
 */
-void receiverConfigure()
+void hardwareInit(void)
 {
-    _delay_ms(150);
-	writeCMD(CONFIGURATION, 16);    /* Configure command */
-/* Set the low battery threshold and the microprocessor clock output */
-	writeCMD(BATTERY, 16);
-	writeCMD(FREQUENCY, 16);        /* Set carrier frequency */
-/* Receiver Setting Command, disable the receiver chain */
-	writeCMD(RECEIVER, 16);
-/* Receiver Setting Command, enable the entire receiver chain */
-	writeCMD(RECEIVER | _BV(0), 16);
-/* Set the FIFO options */
-	resetFIFO();
-/* Set the Baseband Data Filter and Clock Recovery options */
-	writeCMD(BASEFILTER, 16);
-/* Set the expected data bitrate */
-	writeCMD(DATARATE, 16);
-/* Set the AFC enable pattern, range limits and measurement mode */
-	writeCMD(AFC, 16);
+/** Power down Timers 0,1, TWI, SPI, ADC and USART */
+    outb(PRR,0xBF);
+/** We use Interrupt 1 with level triggering for power save mode */
+    sbi(EIMSK,INT1);                /* Enable Interrupt 1 */
+    cbi(EICRA,ISC11);               /* Set level trigger on interrupt 1 */
+    cbi(EICRA,ISC10);
+/** Set control ports as outputs */
+    outb(DDRC,inb(DDRC) | 0x3F);
+    outb(DDRB,inb(DDRB) | 0x07);
+    outb(DDRD,inb(DDRD) | 0x04);
+    sei();                          /* Enable global interrupts */
 }
 
 /****************************************************************************/
-/** @brief Reset the FIFO
+/** @brief Initialize the watchdog timer to interrupt on maximum delay
 
-Clearing bit 1 of the FIFO command will clear the FIFO and restart the synchron
-word detection. Set it to restart the FIFO counter.
 */
-void resetFIFO(void)
+void wdtInit(void)
 {
-    writeCMD(FIFO, 16);
-	writeCMD(FIFO | _BV(1), 16);
+/* Initialize the Watchdog timer to interrupt. */
+/* IMPORTANT: Disable the "WDT Always On" fuse so that WDT can be turned off. */
+    wdt_disable();     /* watchdog timer turn off ready for setup. */
+    outb(WDTCR,0);
+/* Set the WDT with WDE clear, interrupts enabled, interrupt mode set, and
+maximum timeout 8 seconds to give continuous interrupt mode. */
+    sei();
+//    outb(WDTCR,_BV(WDIE)|_BV(WDP3)|_BV(WDP0));
+    outb(WDTCR,_BV(WDIE));  /* For test only: 32 ms timeout */
+
 }
 
 /****************************************************************************/
-/** @brief Write a Command to the RFM01 over SPI
-  
-A command is clocked out to the RFM01 one bit at a time.
-All RF01 commands are 16 bit but the second parameter is kept for code
-compatibility with the other RF chips.
-At the same time a result is clocked back in one bit at a time. The result
-is returned as a 16 bit word.
+/** @brief Send processor to sleep and manage interrupts.
 
-Each bit of output status is available before the clock pulse. After
-the last clock pulse the first FIFO data is presented.
-
-For the RFM01 receiver module the returned result is meaningless except
-for the status read command which is 16 bits.
-
-Parameter:  16 or 8 bit command
-Parameter:  length of command (8 or 16)
-Return:     Value returned from the SPI interface 
+This function is called at the beginning of every processing loop. The INT1
+is enabled before sleeping, and disabled after wakeup.
 */
-uint16_t writeCMD(uint16_t command, uint8_t n)
+void snooze(void)
 {
-	if (n < 16)                                 /* For 8 bit commands */
-        command <<= (16-n);                     /* Shift command byte to upper byte */
-	uint16_t result = 0;						/* Holds the received SDI */
-	cbi(CS_PORT,nSEL);	                        /* Set CS LOW */
-	while(n--)									/* Send All Bits MSB First */
-	{
-		result <<= 1;                           /* Shift left for next bit to receive */
-		result |= ((inb(SPI_PIN) >> SDO) & 1);  /* add received bit to result */
-		if (command & 0x8000)
-			writeSPI(1);						/* Write 1 via SDI */
-		else
-			writeSPI(0);						/* Write 0 via SDI */
-		command <<= 1;							/* Shift left for next bit to send */
-	}
-	sbi(CS_PORT,nSEL);							/* CS HIGH - Finished Sending Command */
-    return result;
+    sei();                              /* Enable global interrupts */
+    sbi(EIMSK,INT1);                    /* Enable Interrupt 1 */
+    set_sleep_mode(SLEEP_MODE_PWR_SAVE);
+    sleep_mode();                       /* Enter sleep mode */
+    cbi(EIMSK,INT1);                    /* Disable Interrupt 1 */
 }
 
 /****************************************************************************/
-/** @brief Read a Data Byte from the RFM01 FIFO over SPI
-  
-The RF01 has two modes of reading the FIFO. If the FIFO level is set to 1 then
-FIFO data available is read out from a dedicated pin, and the FIFO bit(s) can be
-read from the SDO pin. Alternatively a status read bit 1 will indicate the FIFO
-threshold exceeded and data can be read out following the remainder of the status
-word. The latter mode is used here to allow bytewise reception.
+/** @brief Manage the power switching.
 
-A status command (all zeros) is sent to the RFM01 to initiate a databyte read.
-The first 16 bits read out are status bits, followed by some data bits.
-When the FIFO fills to the trigger point FIFO_TRIGGER, the top status bit
-(first one transmitted) of the status word is set and can be tested.
+Adapt the switches 0-9 to the actual microcontroller port outputs.
 
-The data is available before the SCK pulse, and is read first.
-
-Normally FIFO_TRIGGER should be 8 to retrieve a single byte. It should not be
-close to 16 which is the maximum limit of the FIFO buffer. If FIFO_TRIGGER
-is less than 8 then only FIFO_TRIGGER bits are retrieved.
-
-Data is read MSB first.
-
-Return:     Full status word if no data ready, or received data byte in lower byte
-            along with upper byte of status word.
+@param[in] uint8_t bestData. The number of the switch to toggle.
 */
-uint16_t readDataByte()
+void setSwitch(uint8_t bestData)
 {
-	uint8_t n = 16;
-	uint16_t rfm01Status = 0;	     			/* Holds the RF01 status word */
-	uint16_t result = 0;						/* Holds the received data and status */
-	cbi(CS_PORT,nSEL);	                        /* Set CS LOW */
-	while(n--)                                  /* Start reading in the status word */
-	{
-		rfm01Status <<= 1;                       /* Shift left for next bit received */
-		rfm01Status |= ((inb(SPI_PIN) >> SDO) & 1);  /* add received bit to status */
-		writeSPI(0);						    /* Write 0 via SPI for status command */
-	}
-    lastRfm01Status = rfm01Status;
-    if ((rfm01Status & 0x8000) != 0)             /* Check if FFIT is activated */
-    {
-        n = FIFO_TRIGGER;
-        if (n > 8) n = 8;                       /* Limit number read to a byte */
-	    while(n--)						        /* Continue to send zeros to get data */
-	    {
-		    result <<= 1;                       /* Shift left for next bit received */
-		    result |= ((inb(SPI_PIN) >> SDO) & 1);  /* add received bit to result */
-		    writeSPI(0);						/* Write 0 via SPI for status command */
-	    }
-        result |= (rfm01Status & 0xFF00);        /* return upper byte of status word with result */
-    }
-    else result = rfm01Status;                   /* may as well send something back */
-    sbi(CS_PORT,nSEL);					        /* CS high - finished sending status Command */
-    return result;
+    uint16_t bestBit = (1 << bestData);
+/* The lower 4 bits of PORTC are the first four ports */
+    if (bestData < 4) outb(PORTC,inb(PORTC) ^ bestBit);
+/* The lower 3 bits of PORTB are the next three ports */
+    else if (bestData < 7) outb(PORTB,inb(PORTB) ^ (bestBit >> 4));
+/* Bit 2 of PORTD is the eighth port */
+    else if (bestData == 7) outb(PORTD,inb(PORTD) ^ 4);
+/* Bits 4,5 of PORTC are the ninth and tenth ports */
+    else if (bestData < 10) outb(PORTC,inb(PORTC) ^ (bestBit >> 4));
 }
 
 /****************************************************************************/
-/** @brief Bitbang the data on the SPI
-
-Data is setup and a delay is inserted to ensure that the rate is less than 25%
-of the clock, as required by the chip. The SCK is strobed high then low after
-delays. The function exits with SCK low. The datarate is kept to 250kbps to
-cope with a 1MHz clock on the chip at startup.
-
-Parameter:  bit data sent, 0 or 1
+/** @brief Turn off all power switching.
 */
-
-void writeSPI(uint8_t n)
+void clearSwitches(void)
 {
-	cbi(SPI_PORT,SCK);                          /* Clear the SCK */
-    _delay_us(SPI_DELAY);                       /* delay to reduce rate to 250kbps */
-	if (n) sbi(SPI_PORT,SDI);                   /* Setup data for strobe */
-    else cbi(SPI_PORT,SDI);
-    _delay_us(SPI_DELAY);                       /* delay to reduce rate to 250kbps */
-	sbi(SPI_PORT,SCK);                          /* Set the SCK to latch the data */
-    _delay_us(SPI_DELAY);                       /* delay to reduce rate to 250kbps */
-	cbi(SPI_PORT,SCK);                          /* Clear the SCK */
-    _delay_us(SPI_DELAY);                       /* delay to reduce rate to 250kbps */
+    outb(PORTC,(inb(PORTC) & ~0x3F));
+    outb(PORTB,(inb(PORTB) & ~0x07));
+    outb(PORTD,(inb(PORTD) & ~0x04));
 }
-
-/****************************************************************************/
-/** @brief Initialize the SPI interface on the microcontroller port D upper four pins.
-This is not the microcontroller hardware SPI interface.
-*/
-
-void initSPI()
-{
-/* Set pins for SDI, SCK and CS as outputs with nIRQ and SDO as input */
-    outb(SPI_SETUP,(inb(SPI_SETUP) | _BV(SDI) | _BV(SCK)) & ~_BV(nIRQ) & ~_BV(SDO));
-    outb(SPI_PORT,inb(SPI_PORT) & ~_BV(SDI) & ~_BV(SCK));/* Set outputs to zero */
-    outb(CS_SETUP,inb(CS_SETUP) | _BV(nSEL));
-    outb(CS_PORT,inb(CS_PORT) | _BV(nSEL));          /* Set high to deselect*/
-}
-
 /****************************************************************************/
 /** @brief Interrupt on nIRQ from Receiver.
 
