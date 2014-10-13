@@ -101,8 +101,6 @@ void wdtInit(void);
 
 int main(void)
 {
-    uint8_t inBuf[MAX_MESSAGE];
-
     hardwareInit();
     uartInit();
     timer0Init(0,5);
@@ -118,21 +116,24 @@ int main(void)
 		{
 			uint8_t *bufcontents = rfm12_rx_buffer();
 
-/* dump buffer contents to uart */
+            sendch('A');
+/* dump buffer contents to uart			 */
         	uint8_t i;
 			for (i=0;i<rfm12_rx_len();i++)
 			{
 				sendch(bufcontents[i]);
 			}
 			
-/* Tell the implementation that the buffer can be reused for the next data. */
+/* Ttell the implementation that the buffer can be reused for the next data. */
 			rfm12_rx_clear();
 		}
-/* Send a transmission every time a character appears on the serial input */
-        if (checkch())
+/* Send a transmission every 30 ticks (about 1 second) */
+		if (timeValue > 30)
         {
-            inBuf[0] = getch();
-            rfm12_tx(1, 0, inBuf);
+            sendch('X');
+        	uint8_t tv[] = "444444";
+            rfm12_tx(sizeof(tv), 0, tv);
+            timeValue = 0;
         }
 		rfm12_tick();
     }

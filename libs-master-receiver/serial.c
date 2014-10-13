@@ -96,3 +96,18 @@ unsigned char getch(void)
     return UART_DATA_REG;
 }
 
+/*-----------------------------------------------------------------------------*/
+/* Check if a character is ready to be read
+
+The function asserts RTS low then checks if the receive complete bit is set.
+Returns 1 if a character is waiting, 0 otherwise.
+*/
+
+unsigned char checkch(void)
+{
+#ifdef USE_HARDWARE_FLOW
+    cbi(UART_RTS_PORT,UART_RTS_PIN);                        // Enable RTS
+#endif
+    return (UART_STATUS_REG & _BV(RECEIVE_COMPLETE_BIT));
+}
+

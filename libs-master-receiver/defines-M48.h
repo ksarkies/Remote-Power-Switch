@@ -38,7 +38,7 @@ Tested:   ATMega48 at 8MHz internal clock.
 
 /* These are the defines for the selected device and bootloader system */
 #define F_CPU               8000000
-#define BAUD                38400
+#define BAUD                115200
 
 // Simple serial I/O (must define cpu frequency and baudrate before this include) */
 #include <util/setbaud.h>

@@ -26,6 +26,7 @@
 void uartInit(void);
 void sendch(unsigned char c);
 unsigned char getch(void);
+unsigned char checkch(void);
 
 #endif
 

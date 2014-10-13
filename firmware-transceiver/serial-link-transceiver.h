@@ -36,4 +36,6 @@
 #ifndef _SERIAL_LINK_TRANSCEIVER_H_
 #define _SERIAL_LINK_TRANSCEIVER_H_
 
+#define MAX_MESSAGE     10
+
 #endif
