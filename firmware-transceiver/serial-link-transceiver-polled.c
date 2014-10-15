@@ -10,12 +10,6 @@ a PC and a remote unit. The hardware used is part of the Remote Power Control
 project that has been adapted to use a HopeRF RFM12 433MHz transceiver module
 rather than the RFM01 receiver module.
 
-The interrupt driven USART I/O library of Peter Fleury and Andy Gock is used.
-
-Characters from the serial port are buffered and sent in a message when a CR,
-buffer full or timeout occurs. Incoming messages are sent directly to the serial
-port.
-
 The firmware draws on the rfm12lib AVR library provided by Hansinator, Tixiv
 and Soeren at:
 https://www.das-labor.org/wiki/RFM12_library/en
@@ -49,21 +43,23 @@ Tested:   ATMega48 at 8MHz internal clock.
  *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.             *
  ***************************************************************************/
 
+#define F_CPU               8000000
+
 #include <inttypes.h>
 #include <avr/sfr_defs.h>
 #include <avr/io.h>
 #include <avr/wdt.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
+#include <util/delay.h>
 #include <string.h>
-#include <stdbool.h>
+#include "../libs-master-receiver/defines-M48.h"
+#include "../libs-master-receiver/serial.h"
+#include "../libs-master-receiver/timer.h"
 #include "rfm12_config.h"
-#include "serial-link-transceiver.h"
 #include "../auxiliary/rfm12-1.1/src/rfm12.h"
 #include "../auxiliary/rfm12-1.1/src/rfm12.c"
-#include "../auxiliary/avr-uart-master/uart.h"
-#include "../libs-master-receiver/timer.h"
-#include <util/delay.h>
+#include "serial-link-transceiver.h"
 
 /** Convenience macros (we don't use them all) */
 #define TRUE 1
@@ -84,8 +80,15 @@ Tested:   ATMega48 at 8MHz internal clock.
 /*****************************************************************************/
 /* Global Variables */
 
+/** @name UART variables */
+/*@{*/
+volatile uint16_t uartInput;    /**< Character and errorcode read from uart */
+volatile uint8_t lastError;     /**< Error code for transmission back */
+volatile uint8_t checkSum;      /**< Checksum on message contents */
+/*@}*/
+
 /** Real Time Clock Global Variable, ticks are 30.5 per second */
-uint32_t timeCount;
+uint32_t timeValue;
 /*****************************************************************************/
 /* Local Prototypes */
 
@@ -97,14 +100,10 @@ void wdtInit(void);
 
 int main(void)
 {
-    uint8_t index = 0;
     uint8_t inBuf[MAX_MESSAGE];
-    timeCount = 0;
-    uint8_t sendMessage = false;
 
     hardwareInit();
-    uart0_init(UART_BAUD_SELECT_DOUBLE_SPEED(115200,F_CPU));
-/* Initialise timer to divide by 1025, giving 32ms time tick */
+    uartInit();
     timer0Init(0,5);
 
     rfm12_init();
@@ -114,49 +113,25 @@ int main(void)
     for(;;)
     {
         wdt_reset();
-
-/* If an RF message has been received, take it from the buffer one character
-at a time and transmit via the serial port. */
 		if (rfm12_rx_status() == STATUS_COMPLETE)
 		{
-			uint8_t *bufferContents = rfm12_rx_buffer();
+			uint8_t *bufcontents = rfm12_rx_buffer();
 
-/* Send buffer to serial port. Transfer message to another buffer first
-otherwise the rfm12_rx_clear() may wipe out part of another incoming message.
-rfm12lib's receiver is double buffered but this avoids potential issues at the
-cost of another buffer block. */
+/* dump buffer contents to uart */
         	uint8_t i;
-            char messageBuffer[32];
-            uint8_t messageLength = rfm12_rx_len();
-			for (i=0;i<messageLength;i++)
+			for (i=0;i<rfm12_rx_len();i++)
 			{
-                messageBuffer[i] = bufferContents[i];
+				sendch(bufcontents[i]);
 			}
-            messageBuffer[messageLength] = 0;       /* Terminate string. */
-			rfm12_rx_clear();                       /* Clear the buffer. */
-			uart0_puts(messageBuffer);              /* Send as a string */
+			
+/* Tell the implementation that the buffer can be reused for the next data. */
+			rfm12_rx_clear();
 		}
-
-/* Buffer serial characters as they appear for transmission as a message.
-Upper byte is status, lower byte has ASCII character if no error occurred. */
-        char character = uart0_getc();
-        if (character != UART_NO_DATA)
+/* Send a transmission every time a character appears on the serial input */
+        if (checkch())
         {
-            inBuf[index++] = (uint8_t)(character & 0xFF);
-/* Signal to transmit if a CR was received or string too long. */ 
-            sendMessage = ((index > MAX_MESSAGE) || (character == 0x0D));
-        }
-
-/* Send a transmission if time waited is too long or ready to send. */ 
-        if  (sendMessage || (timeCount > TIMEOUT))
-        {
-            if (index > 0)
-            {
-                rfm12_tx(index, 0, inBuf);
-                index = 0;
-            }
-            timeCount = 0;
-            sendMessage = false;
+            inBuf[0] = getch();
+            rfm12_tx(1, 0, inBuf);
         }
 		rfm12_tick();
     }
@@ -196,6 +171,6 @@ This ISR simply updates the RTC.
 */
 ISR(TIMER_INTERRUPT)
 {
-  timeCount++;
+  timeValue++;
 }
 

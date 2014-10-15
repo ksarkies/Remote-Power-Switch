@@ -26,6 +26,8 @@
 # MCU name
 MCU = atmega48
 
+F_CPU = 10000000UL
+
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
 
@@ -39,7 +41,8 @@ TARGET = serial-link-transceiver
 
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c
-SRC += ../libs-master-receiver/serial.c
+SRC += ../auxiliary/avr-uart-master/uart.c
+#SRC += ../libs-master-receiver/serial.c
 SRC += ../libs-master-receiver/timer.c
 
 
@@ -80,6 +83,8 @@ $(patsubst %,-I%,$(EXTRAINCDIRS))
 #CFLAGS += -std=c99
 CFLAGS += -std=gnu99
 
+# Defines to be passed to all compiles
+CDEFS      += -DF_CPU=$(F_CPU)
 
 
 # Optional assembler flags.
@@ -211,7 +216,7 @@ LST = $(ASRC:.S=.lst) $(SRC:.c=.lst)
 
 # Combine all necessary flags and optional flags.
 # Add target processor to flags.
-ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS)
+ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(CDEFS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 

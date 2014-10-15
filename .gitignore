@@ -3,6 +3,7 @@
 *.bin
 *.hex
 *.list
+*.eep
 *.srec
 *.a
 *.elf

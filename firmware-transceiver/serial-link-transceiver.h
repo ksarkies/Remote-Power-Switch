@@ -36,6 +36,17 @@
 #ifndef _SERIAL_LINK_TRANSCEIVER_H_
 #define _SERIAL_LINK_TRANSCEIVER_H_
 
-#define MAX_MESSAGE     10
+#define MAX_MESSAGE         30
+#define TIMEOUT             3
+
+/* These are the defines for the selected device */
+#define BAUD                115200
+
+#define REC_INTERRUPT       INT1_vect
+#define TIMER_INTERRUPT     TIMER0_OVF_vect
+
+/* Change some register names to match up with other AVRs */
+#define WDTCR               WDTCSR
 
 #endif
+
