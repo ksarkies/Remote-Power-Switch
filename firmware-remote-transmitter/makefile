@@ -26,6 +26,8 @@
 # MCU name
 MCU = attiny2313
 
+F_CPU = 8000000UL
+
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
 
@@ -69,6 +71,9 @@ CFLAGS = -g -O$(OPT) \
 -Wall -Wstrict-prototypes \
 -Wa,-adhlns=$(<:.c=.lst) \
 $(patsubst %,-I%,$(EXTRAINCDIRS))
+
+# Defines to be passed to all compiles
+CDEFS      += -DF_CPU=$(F_CPU)
 
 
 # Set a "language standard" compiler flag.
@@ -210,7 +215,7 @@ LST = $(ASRC:.S=.lst) $(SRC:.c=.lst)
 
 # Combine all necessary flags and optional flags.
 # Add target processor to flags.
-ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS)
+ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(CDEFS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 

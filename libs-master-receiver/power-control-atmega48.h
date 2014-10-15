@@ -68,5 +68,8 @@ firmware updates. */
 #define REC_INTERRUPT   INT1_vect
 #define TIMER_INTERRUPT TIMER0_OVF_vect
 
+/* Change some register names to match up with other AVRs */
+#define WDTCR                   WDTCSR
+
 #endif
 

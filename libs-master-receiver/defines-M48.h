@@ -1,4 +1,4 @@
-/* AVR Defines
+/* AVR Defines for USART library
 
 This file assigns registers, particular to an AVR type, to common constants.
 It is valid for bootloader and application firmware.
@@ -7,7 +7,7 @@ I/O pin values for controlling the bootloader operation are given at the end.
 
 Software: AVR-GCC 4.8.2
 Target:   Any AVR with sufficient output ports and a timer
-Tested:   ATMega48 at 8MHz internal clock.
+Tested:   ATMega48 series at 8MHz internal clock.
 */
 
 /****************************************************************************
@@ -36,8 +36,7 @@ Tested:   ATMega48 at 8MHz internal clock.
 /* Choose whether to use hardware flow control for serial comms. */
 //#define USE_HARDWARE_FLOW
 
-/* These are the defines for the selected device and bootloader system */
-#define F_CPU               8000000
+/* These are the defines for the selected device */
 #define BAUD                115200
 
 // Simple serial I/O (must define cpu frequency and baudrate before this include) */
@@ -83,9 +82,6 @@ Tested:   ATMega48 at 8MHz internal clock.
 #define UART_RTS_PORT           PORTD
 #define UART_RTS_PORT_DIR       DDRD
 #define UART_RTS_PIN            3
-
-/* Change some register names to match up with other AVRs */
-#define WDTCR                   WDTCSR
 
 #endif
 

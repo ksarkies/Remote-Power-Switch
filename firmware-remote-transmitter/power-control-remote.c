@@ -48,8 +48,6 @@ Tested:   ATMega48, ATTiny2313 at 8MHz internal clock.
  *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.             *
  ***************************************************************************/
 
-#define F_CPU               8000000
-
 #include <inttypes.h>
 #include <avr/sfr_defs.h>
 #include <avr/wdt.h>

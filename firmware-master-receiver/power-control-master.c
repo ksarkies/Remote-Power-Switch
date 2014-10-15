@@ -52,8 +52,6 @@ Tested:   ATMega48 at 8MHz internal clock.
  *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.             *
  ***************************************************************************/
 
-#define F_CPU               8000000
-
 #include <inttypes.h>
 #include <avr/sfr_defs.h>
 #include <avr/wdt.h>
@@ -62,7 +60,6 @@ Tested:   ATMega48 at 8MHz internal clock.
 #include <avr/sleep.h>
 #include <util/delay.h>
 #include "power-control-master.h"
-#include "../libs-master-receiver/defines-M48.h"
 #include "../libs-master-receiver/power-control-atmega48.h"
 #include "../libs-master-receiver/timer.h"
 #include "../libs-master-receiver/rfm01.h"
