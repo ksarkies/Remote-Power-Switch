@@ -103,7 +103,7 @@ int main(void)
     uint8_t sendMessage = false;
 
     hardwareInit();
-    uart0_init(UART_BAUD_SELECT_DOUBLE_SPEED(115200,F_CPU));
+    uart0_init(0x800A);
 /* Initialise timer to divide by 1025, giving 32ms time tick */
     timer0Init(0,5);
 
@@ -139,7 +139,7 @@ cost of another buffer block. */
 
 /* Buffer serial characters as they appear for transmission as a message.
 Upper byte is status, lower byte has ASCII character if no error occurred. */
-        char character = uart0_getc();
+        uint16_t character = uart0_getc();
         if (character != UART_NO_DATA)
         {
             inBuf[index++] = (uint8_t)(character & 0xFF);

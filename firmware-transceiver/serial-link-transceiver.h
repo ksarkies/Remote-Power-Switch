@@ -42,6 +42,14 @@
 /* These are the defines for the selected device */
 #define BAUD                115200
 
+#include <util/setbaud.h>
+
+#if USE_2X
+#define BAUD_SETTING    UBRRL_VALUE + (UBRRH_VALUE << 8) + 0x8000
+#else
+#define BAUD_SETTING    UBRRL_VALUE + (UBRRH_VALUE << 8)
+#endif
+
 #define REC_INTERRUPT       INT1_vect
 #define TIMER_INTERRUPT     TIMER0_OVF_vect
 
