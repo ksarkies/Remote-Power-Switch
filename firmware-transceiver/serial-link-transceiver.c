@@ -57,12 +57,14 @@ Tested:   ATMega48 at 8MHz internal clock.
 #include <avr/sleep.h>
 #include <string.h>
 #include <stdbool.h>
+#include "../../AVR-Library/nartos/nartos.h"
+#include "../../AVR-Library/timer/timer.h"
 #include "rfm12_config.h"
 #include "serial-link-transceiver.h"
 #include "../auxiliary/rfm12-1.1/src/rfm12.h"
 #include "../auxiliary/rfm12-1.1/src/rfm12.c"
 #include "../auxiliary/avr-uart-master/uart.h"
-#include "../libs-master-receiver/timer.h"
+#include "../../AVR-Library/timer/timer.h"
 #include <util/delay.h>
 
 /** Convenience macros (we don't use them all) */

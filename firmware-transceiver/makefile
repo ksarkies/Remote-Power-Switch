@@ -43,7 +43,8 @@ TARGET = serial-link-transceiver
 SRC = $(TARGET).c
 SRC += ../auxiliary/avr-uart-master/uart.c
 #SRC += ../libs-master-receiver/serial.c
-SRC += ../libs-master-receiver/timer.c
+SRC += ../../AVR-Library/timer/timer.c
+SRC += ../../AVR-Library/nartos/nartos.c
 
 
 # List Assembler source files here.
