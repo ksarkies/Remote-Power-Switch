@@ -39,9 +39,10 @@
 #define MAX_MESSAGE         30
 #define TIMEOUT             3
 
-/* These are the defines for the selected device */
-#define BAUD                115200
+/* Baud rate of the external serial interface */
+#define BAUD                38400
 
+/* Needed to force the Fleury library to round up to accurate rates */
 #include <util/setbaud.h>
 
 #if USE_2X

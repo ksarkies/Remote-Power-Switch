@@ -26,7 +26,7 @@
 # MCU name
 MCU = atmega48
 
-F_CPU = 10000000UL
+F_CPU = 8000000UL
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
@@ -43,8 +43,8 @@ TARGET = serial-link-transceiver
 SRC = $(TARGET).c
 SRC += ../auxiliary/avr-uart-master/uart.c
 #SRC += ../libs-master-receiver/serial.c
-SRC += ../../AVR-Library/timer/timer.c
-SRC += ../../AVR-Library/nartos/nartos.c
+SRC += ../../NARTOS/timer/timer.c
+SRC += ../../NARTOS/nartos.c
 
 
 # List Assembler source files here.

@@ -57,14 +57,13 @@ Tested:   ATMega48 at 8MHz internal clock.
 #include <avr/sleep.h>
 #include <string.h>
 #include <stdbool.h>
-#include "../../AVR-Library/nartos/nartos.h"
-#include "../../AVR-Library/timer/timer.h"
+#include "../../NARTOS/nartos.h"
+#include "../../NARTOS/timer/timer.h"
 #include "rfm12_config.h"
 #include "serial-link-transceiver.h"
 #include "../auxiliary/rfm12-1.1/src/rfm12.h"
 #include "../auxiliary/rfm12-1.1/src/rfm12.c"
 #include "../auxiliary/avr-uart-master/uart.h"
-#include "../../AVR-Library/timer/timer.h"
 #include <util/delay.h>
 
 /** Convenience macros (we don't use them all) */
@@ -87,22 +86,25 @@ Tested:   ATMega48 at 8MHz internal clock.
 /* Global Variables */
 
 /** Real Time Clock Global Variable, ticks are 30.5 per second */
-uint32_t timeCount;
+static uint32_t timeCount;
+static uint8_t index;
+static uint8_t inBuf[MAX_MESSAGE];
+volatile uint8_t inputPacketReceiveID;
+volatile uint8_t outputPacketSendID;
 /*****************************************************************************/
 /* Local Prototypes */
 
 void hardwareInit(void);
 void timerInit(void);
 void wdtInit(void);
+void inputPacketReceive(void) __attribute__ ((naked));
+void outputPacketSend(void)   __attribute__ ((naked));
 /*****************************************************************************/
 /** @brief Main Program */
 
 int main(void)
 {
-    uint8_t index = 0;
-    uint8_t inBuf[MAX_MESSAGE];
     timeCount = 0;
-    uint8_t sendMessage = false;
 
     hardwareInit();
     uart0_init(BAUD_SETTING);
@@ -113,54 +115,80 @@ int main(void)
     wdtInit();
     sei();
 
+/** Initialise the OS stuff, setup the receive task as a first task, and jump
+to the OS. */
+    initNartos();
+    inputPacketReceiveID = taskStart((uint16_t)*inputPacketReceive,FALSE);
+    outputPacketSendID = taskStart((uint16_t)*outputPacketSend,FALSE);
+    nartos();
+}
+
+/****************************************************************************/
+/** @brief Handle incoming RF messages and send on to serial output
+
+*/
+void inputPacketReceive()
+{
     for(;;)
     {
         wdt_reset();
 
 /* If an RF message has been received, take it from the buffer one character
 at a time and transmit via the serial port. */
-		if (rfm12_rx_status() == STATUS_COMPLETE)
-		{
-			uint8_t *bufferContents = rfm12_rx_buffer();
-
-/* Send buffer to serial port. Transfer message to another buffer first
-otherwise the rfm12_rx_clear() may wipe out part of another incoming message.
-rfm12lib's receiver is double buffered but this avoids potential issues at the
-cost of another buffer block. */
-        	uint8_t i;
-            char messageBuffer[32];
+        if (rfm12_rx_status() == STATUS_COMPLETE)
+        {
+            uint8_t *bufferContents = rfm12_rx_buffer();
             uint8_t messageLength = rfm12_rx_len();
+            uint8_t i;
 			for (i=0;i<messageLength;i++)
 			{
-                messageBuffer[i] = bufferContents[i];
+				uart0_putc(bufferContents[i]);
 			}
-            messageBuffer[messageLength] = 0;       /* Terminate string. */
-			rfm12_rx_clear();                       /* Clear the buffer. */
-			uart0_puts(messageBuffer);              /* Send as a string */
-		}
+/* Clear the "in use" status of the buffer to be available for rfm12lib. */
+            rfm12_rx_clear();
+        }
+        taskRelinquish();
+    }
+}
 
-/* Buffer serial characters as they appear for transmission as a message.
+/****************************************************************************/
+/** @brief Handle incoming serial messages and send on to RF output
+
+Buffer serial characters as they appear for transmission as a message.
 Upper byte is status, lower byte has ASCII character if no error occurred. */
+
+void outputPacketSend(void)
+{
+    index = 0;
+    for(;;)
+    {
+        uint8_t sendMessage = false;
         uint16_t character = uart0_getc();
-        if (character != UART_NO_DATA)
+/* wait for a message to be built. */
+        if (character == UART_NO_DATA)
+            taskRelinquish();
+        else
         {
             inBuf[index++] = (uint8_t)(character & 0xFF);
-/* Signal to transmit if a CR was received or string too long. */ 
+/* Signal to transmit if a CR was received, or string too long, or time waited
+is too long. */ 
             sendMessage = ((index > MAX_MESSAGE) || (character == 0x0D));
         }
 
-/* Send a transmission if time waited is too long or ready to send. */ 
-        if  (sendMessage || (timeCount > TIMEOUT))
+/* Send a transmission if message is ready to send, or time waited
+is too long. */ 
+        if ((sendMessage) || (timeCount > TIMEOUT))
         {
             if (index > 0)
             {
-                rfm12_tx(index, 0, inBuf);
+/* Wait for receiver buffer to be freed and message loaded. */
+                while (rfm12_tx(index, 0, inBuf) == RFM12_TX_OCCUPIED)
+                    taskRelinquish();
                 index = 0;
             }
             timeCount = 0;
-            sendMessage = false;
         }
-		rfm12_tick();
+        rfm12_tick();
     }
 }
 
