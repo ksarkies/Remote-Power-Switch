@@ -26,7 +26,7 @@
 # MCU name
 MCU = atmega48
 
-F_CPU = 8000000UL
+F_CPU = 20000000UL
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex

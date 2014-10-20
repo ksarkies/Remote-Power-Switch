@@ -43,6 +43,7 @@
 #define BAUD                38400
 
 /* Needed to force the Fleury library to round up to accurate rates */
+/* setbaud.h however doesn't select the best accuracy, only within spec */
 #include <util/setbaud.h>
 
 #if USE_2X

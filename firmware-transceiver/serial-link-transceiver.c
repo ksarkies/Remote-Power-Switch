@@ -165,30 +165,31 @@ void outputPacketSend(void)
         uint8_t sendMessage = false;
         uint16_t character = uart0_getc();
 /* wait for a message to be built. */
-        if (character == UART_NO_DATA)
-            taskRelinquish();
-        else
+        if (character != UART_NO_DATA)
         {
             inBuf[index++] = (uint8_t)(character & 0xFF);
-/* Signal to transmit if a CR was received, or string too long, or time waited
-is too long. */ 
+/* Signal to transmit if a CR was received, or string too long. */ 
             sendMessage = ((index > MAX_MESSAGE) || (character == 0x0D));
         }
 
-/* Send a transmission if message is ready to send, or time waited
-is too long. */ 
+/* Send a transmission if message is ready to send, or something was
+received and time waited is too long. */ 
         if ((sendMessage) || (timeCount > TIMEOUT))
         {
             if (index > 0)
             {
 /* Wait for receiver buffer to be freed and message loaded. */
                 while (rfm12_tx(index, 0, inBuf) == RFM12_TX_OCCUPIED)
+                {
+                    rfm12_tick();
                     taskRelinquish();
+                }
                 index = 0;
             }
             timeCount = 0;
         }
         rfm12_tick();
+        taskRelinquish();
     }
 }
 
