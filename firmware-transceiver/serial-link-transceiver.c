@@ -65,6 +65,7 @@ Tested:   ATMega48 at 8MHz internal clock.
 #include "../auxiliary/rfm12-1.1/src/rfm12.c"
 #include "../auxiliary/avr-uart-master/uart.h"
 #include <util/delay.h>
+#include "baud.h"
 
 /** Convenience macros (we don't use them all) */
 #define TRUE 1
