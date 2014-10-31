@@ -24,11 +24,12 @@ count of the number of each symbol received. A decision is made after 10 symbols
 have arrived by selecting the symbol with the most counts. No more decisions are
 made until a preset delay has elapsed following the last reception.
 
-A second prototype is planned to use transceiver modules, the hardware doubling
-as a serial communications system between two base stations.
+A second prototype uses transceiver modules, the hardware doubling as a serial
+communications system between two base stations.
 
-More information will be posted on www.jiggerjuice.info
+More information is available on:
+www.jiggerjuice.info/electronics/projects/remotecontrol/remote-control-switch.html
 
 K. Sarkies
-19 March 2014
+27 October 2014
 
