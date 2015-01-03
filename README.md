@@ -10,11 +10,11 @@ used in the system requires care to be taken in regard to losses, so it was
 decided to avoid using wall switches which would require additional cable length
 with its attendant loss.
 
-The first prototype uses a transmitter module in a hand unit managed by an Atmel
-ATTiny2312, and a receiver module in the master station mounted at the power
-distribution box. While the RF modules supposedly used SPI, the transmitter
-modules actually used a modification of this, meaning that an inbuilt SPI
-peripheral on the microcontroller couldn't be used. The transmission system is
+A small board uses an RFM02 transmitter module in a hand unit with an Atmel
+ATTiny2313. A receiver board using an RFM01 receiver module is mounted at the
+power distribution box. While the RF modules supposedly used SPI, the RFM02
+modules actually uses a modification of this, meaning that an inbuilt SPI
+peripheral on the microcontroller cannot be used. The transmission system is
 FM in the 433MHz band.
 
 The system operates by transmitting a single ASCII number continuously when a
@@ -24,12 +24,15 @@ count of the number of each symbol received. A decision is made after 10 symbols
 have arrived by selecting the symbol with the most counts. No more decisions are
 made until a preset delay has elapsed following the last reception.
 
-A second prototype uses transceiver modules, the hardware doubling as a serial
-communications system between two base stations.
-
 More information is available on:
 www.jiggerjuice.info/electronics/projects/remotecontrol/remote-control-switch.html
 
+The receiver board is designed to take RFM12 transceiver modules so that the
+hardware can double as a serial communications system between two base stations.
+
+More information is available on:
+www.jiggerjuice.info/electronics/projects/remotecontrol/serial-link-transceiver.html
+
 K. Sarkies
-27 October 2014
+4 January 2015
 
