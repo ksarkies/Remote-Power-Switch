@@ -86,8 +86,10 @@ CFLAGS += -std=gnu99
 
 # Defines to be passed to all compiles
 CDEFS      += -DF_CPU=$(F_CPU)
-#CDEFS      += -DUSART0_LARGE_BUFFER
-
+CDEFS      += -DMCU=$(MCU)
+ifeq ($(MCU),atmega328p)
+CDEFS      += -DUSART0_LARGE_BUFFER
+endif
 
 # Optional assembler flags.
 #  -Wa,...:   tell GCC to pass this to the assembler.

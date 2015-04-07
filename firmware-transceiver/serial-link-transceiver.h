@@ -37,13 +37,31 @@
 #define _SERIAL_LINK_TRANSCEIVER_H_
 
 #define MAX_MESSAGE         64
-#define TIMEOUT             3
+#define TIMEOUT             10
 
 /* Baud rate of the external serial interface */
 #define BAUD                38400
-/* Buffer size for serial communications */
+/* Buffer size for serial communications.
+Set to maximum (power of 2 necessary depending on the processor SRAM. */
+#if defined(__AVR_ATmega48__)
+#warning "MCU atmega48"
+#define UART_RX0_BUFFER_SIZE    128
+#define UART_TX0_BUFFER_SIZE    128
+#elif defined(__AVR_ATmega88__)
+#warning "MCU atmega88"
 #define UART_RX0_BUFFER_SIZE    256
 #define UART_TX0_BUFFER_SIZE    256
+#elif defined(__AVR_ATmega168__)
+#warning "MCU atmega168"
+#define UART_RX0_BUFFER_SIZE    256
+#define UART_TX0_BUFFER_SIZE    256
+#elif defined(__AVR_ATmega328P__)
+#warning "MCU atmega328"
+#define UART_RX0_BUFFER_SIZE    1024
+#define UART_TX0_BUFFER_SIZE    1024
+#else
+#error "Processor not supported"
+#endif
 
 #define REC_INTERRUPT       INT1_vect
 #define TIMER_INTERRUPT     TIMER0_OVF_vect

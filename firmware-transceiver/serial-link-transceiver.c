@@ -180,7 +180,7 @@ void outputPacketSend(void)
 
 /* Send a transmission if message is ready to send, or something was
 received and time waited is too long. */ 
-        if ((sendMessage) || (timeCount > TIMEOUT))
+        if (sendMessage || (timeCount++ > TIMEOUT))
         {
             if (index > 0)
             {
