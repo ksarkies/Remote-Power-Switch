@@ -36,11 +36,14 @@
 #ifndef _SERIAL_LINK_TRANSCEIVER_H_
 #define _SERIAL_LINK_TRANSCEIVER_H_
 
-#define MAX_MESSAGE         30
+#define MAX_MESSAGE         64
 #define TIMEOUT             3
 
 /* Baud rate of the external serial interface */
 #define BAUD                38400
+/* Buffer size for serial communications */
+#define UART_RX0_BUFFER_SIZE    256
+#define UART_TX0_BUFFER_SIZE    256
 
 #define REC_INTERRUPT       INT1_vect
 #define TIMER_INTERRUPT     TIMER0_OVF_vect

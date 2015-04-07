@@ -17,15 +17,20 @@ buffer full or timeout occurs. Incoming messages are sent directly to the serial
 port.
 
 The firmware draws on the rfm12lib AVR library provided by Hansinator, Tixiv
-and Soeren at:
+and Soeren.
 https://www.das-labor.org/wiki/RFM12_library/en
+
+Dependencies:
+avr-uart-master https://github.com/andygock/avr-uart
+NARTOS          https://github.com/ksarkies/NARTOS
+rfm12lib        https://www.das-labor.org/wiki/RFM12_library/en
 
 @note
 Software: AVR-GCC 4.8.2
 @note
 Target:   Any AVR with sufficient output ports and a timer
 @note
-Tested:   ATMega48 at 8MHz internal clock.
+Tested:   ATMega48 at 8MHz internal clock, ATMega88/168 at 8MHz internal clock.
  */
 /***************************************************************************
  *   Copyright (C) 2014 by Ken Sarkies                                     *

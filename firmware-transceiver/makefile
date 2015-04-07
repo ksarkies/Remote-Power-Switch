@@ -86,6 +86,7 @@ CFLAGS += -std=gnu99
 
 # Defines to be passed to all compiles
 CDEFS      += -DF_CPU=$(F_CPU)
+#CDEFS      += -DUSART0_LARGE_BUFFER
 
 
 # Optional assembler flags.
