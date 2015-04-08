@@ -61,7 +61,7 @@ Tested:   ATMega48 at 8MHz internal clock.
 #include <util/delay.h>
 #include "power-control-master.h"
 #include "../libs-master-receiver/power-control-atmega48.h"
-#include "../libs-master-receiver/timer.h"
+#include "../../NARTOS/timer/timer.h"
 #include "../libs-master-receiver/rfm01.h"
 #include "../libs-master-receiver/rfm01.c"
 
