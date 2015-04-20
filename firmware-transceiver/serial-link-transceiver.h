@@ -36,7 +36,7 @@
 #ifndef _SERIAL_LINK_TRANSCEIVER_H_
 #define _SERIAL_LINK_TRANSCEIVER_H_
 
-#define MAX_MESSAGE         64
+#define MAX_MESSAGE         62
 #define TIMEOUT             10
 
 /* Baud rate of the external serial interface */
@@ -59,6 +59,12 @@ Set to maximum (power of 2 necessary depending on the processor SRAM. */
 #warning "MCU atmega328"
 #define UART_RX0_BUFFER_SIZE    1024
 #define UART_TX0_BUFFER_SIZE    1024
+#ifndef RFM12_RX_BUFFER_SIZE
+#define RFM12_RX_BUFFER_SIZE    126
+#endif
+#ifndef RFM12_TX_BUFFER_SIZE
+#define RFM12_TX_BUFFER_SIZE    126
+#endif
 #else
 #error "Processor not supported"
 #endif

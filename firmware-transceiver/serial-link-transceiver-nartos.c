@@ -62,6 +62,7 @@ Tested:   ATMega48 at 8MHz internal clock, ATMega88/168 at 8MHz internal clock.
 #include <avr/sleep.h>
 #include <string.h>
 #include <stdbool.h>
+#include "../../NARTOS/nartos.h"
 #include "../../NARTOS/timer/timer.h"
 #include "rfm12_config.h"
 #include "serial-link-transceiver.h"
@@ -92,8 +93,8 @@ Tested:   ATMega48 at 8MHz internal clock, ATMega88/168 at 8MHz internal clock.
 
 /** Real Time Clock Global Variable, ticks are 30.5 per second */
 volatile uint32_t timeCount;
-volatile uint8_t indx;
-static uint8_t inBuf[MAX_MESSAGE];
+volatile uint8_t index;
+volatile uint8_t inBuf[MAX_MESSAGE];
 volatile uint8_t inputPacketReceiveID;
 volatile uint8_t outputPacketSendID;
 /*****************************************************************************/
@@ -120,48 +121,81 @@ int main(void)
     wdtInit();
     sei();
 
-    indx = 0;
+/** Initialise the OS stuff, setup the receive task as a first task, and jump
+to the OS. */
+    initNartos();
+    inputPacketReceiveID = taskStart((uint16_t)*inputPacketReceive,FALSE);
+    outputPacketSendID = taskStart((uint16_t)*outputPacketSend,FALSE);
+    nartos();
+}
 
+/****************************************************************************/
+/** @brief Handle incoming RF messages and send on to serial output
+
+*/
+void inputPacketReceive()
+{
     for(;;)
     {
         wdt_reset();
 
+/* If an RF message has been received, take it from the buffer one character
+at a time and transmit via the serial port. */
+        if (rfm12_rx_status() == STATUS_COMPLETE)
+        {
+            uint8_t *bufferContents = rfm12_rx_buffer();
+            uint8_t messageLength = rfm12_rx_len();
+            uint8_t i;
+			for (i=0;i<messageLength;i++)
+			{
+				uart0_putc(bufferContents[i]);
+			}
+/* Clear the "in use" status of the buffer to be available for rfm12lib. */
+            rfm12_rx_clear();
+        }
+        taskRelinquish();
+    }
+}
+
+/****************************************************************************/
+/** @brief Handle incoming serial messages and send on to RF output
+
+Buffer serial characters as they appear for transmission as a message.
+Upper byte is status, lower byte has ASCII character if no error occurred. */
+
+void outputPacketSend(void)
+{
+    index = 0;
+    for(;;)
+    {
         uint8_t sendMessage = false;
         uint16_t character = uart0_getc();
-/* Wait for a serial incoming message to be built. */
+/* wait for a message to be built. */
         if (character != UART_NO_DATA)
         {
-            inBuf[indx++] = (uint8_t)(character & 0xFF);
+            inBuf[index++] = (uint8_t)(character & 0xFF);
 /* Signal to transmit if a CR was received, or string too long. */ 
-            sendMessage = ((indx > MAX_MESSAGE) || (character == 0x0D));
+            sendMessage = ((index > MAX_MESSAGE) || (character == 0x0D));
         }
 
 /* Send a transmission if message is ready to send, or something was
 received and time waited is too long. */ 
         if (sendMessage || (timeCount++ > TIMEOUT))
         {
-/* Wait for the transmit buffer to be freed and message loaded. */
-            if ((indx > 0) && (rfm12_tx(indx, 0, inBuf) != RFM12_TX_OCCUPIED))
-                indx = 0;
+            if (index > 0)
+            {
+/* Wait for transmit buffer to be freed and message loaded. */
+                while (rfm12_tx(index, 0, inBuf) == RFM12_TX_OCCUPIED)
+                {
+                    rfm12_tick();
+                    taskRelinquish();
+                }
+                index = 0;
+            }
             timeCount = 0;
         }
         rfm12_tick();
-
-/* If an RF incoming message has been received, take it from the buffer one
-character at a time and transmit via the serial port. */
-        if (rfm12_rx_status() == STATUS_COMPLETE)
-        {
-            uint8_t *bufferContents = rfm12_rx_buffer();
-            uint8_t messageLength = rfm12_rx_len();
-            uint8_t i;
-            for (i=0;i<messageLength;i++)
-            {
-	            uart0_putc(bufferContents[i]);
-            }
-/* Clear the "in use" status of the receive buffer to be available for
-rfm12lib. */
-            rfm12_rx_clear();
-        }
+        taskRelinquish();
     }
 }
 
