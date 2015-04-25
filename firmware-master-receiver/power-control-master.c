@@ -2,7 +2,7 @@
 @mainpage Power Control Project Master Unit
 @version 0.0.0
 @author Ken Sarkies (www.jiggerjuice.net)
-@date 20 May 2011
+@date 25 April 2015
 @brief Code for a Master Power Switch unit
 
 *** This sets the sleep mode, and requires the 8-bit timer 0 to generate
@@ -61,8 +61,8 @@ Tested:   ATMega48 at 8MHz internal clock.
 #include <util/delay.h>
 #include "power-control-master.h"
 #include "../libs-master-receiver/power-control-atmega48.h"
-#include "../../NARTOS/timer/timer.h"
 #include "../libs-master-receiver/rfm01.h"
+/* Need to include source file here to access defines referred to above */
 #include "../libs-master-receiver/rfm01.c"
 
 /** Convenience macros (we don't use them all) */
@@ -95,13 +95,14 @@ void wdtInit(void);
 void snooze(void);
 void setSwitch(uint8_t bestData);
 void clearSwitches(void);
+void resetTimer(void);
 /*****************************************************************************/
 /** @brief Main Program */
 
 int main(void)
 {
     hardwareInit();                 /* Initialize the processor specific hardware */
-    timer0Init(0,5);                /* Configure the timer */
+    resetTimer();                   /* Configure the timer */
     timeValue = 0;                  /* reset timer */
     initSPI();
     receiverConfigure();            /* Initialize the receiver */
@@ -135,7 +136,7 @@ allow other control commands to be activated. */
                 validData = 0;
                 for (uint8_t bin=0; bin < 12; bin++) dataCount[bin] = 0;
             }
-            timer0Init(0,5);
+            resetTimer();
             timeValue = 0;                  /* reset timer */
             data = low(receiverStatus);
             resetFIFO();
@@ -178,7 +179,7 @@ existing value of the port. */
 */
 void hardwareInit(void)
 {
-/** Power down Timers 0,1, TWI, SPI, ADC and USART */
+/** Power down Timers 0 and 1, TWI, SPI, ADC and USART */
     outb(PRR,0xBF);
 /** We use Interrupt 1 with level triggering for power save mode */
     sbi(EIMSK,INT1);                /* Enable Interrupt 1 */
@@ -189,6 +190,22 @@ void hardwareInit(void)
     outb(DDRB,inb(DDRB) | 0x07);
     outb(DDRD,inb(DDRD) | 0x04);
     sei();                          /* Enable global interrupts */
+}
+
+/****************************************************************************/
+/** @brief   Initialise Timer 2
+
+This function will initialise the timer with the mode of operation and the
+clock rate to be used.
+*/
+
+void resetTimer(void)
+{
+/** Set timer to FCPU/1024 which is about 30.5 overflows per second for 8MHz. */
+    outb(TIMER_CONT_REG,((inb(TIMER_CONT_REG) & 0xF8) | 5));
+    outb(TCOUNT,0);              /* Clear the register */
+    sbi(TIMER_FLAG_REG, TOV);    /* Force clear the overflow interrupt flag */
+    sbi(TIMER_MASK_REG, TOIE);   /* Enable the overflow interrupt */
 }
 
 /****************************************************************************/
@@ -204,9 +221,6 @@ void wdtInit(void)
 /* Set the WDT with WDE clear, interrupts enabled, interrupt mode set, and
 maximum timeout 8 seconds to give continuous interrupt mode. */
     sei();
-//    outb(WDTCR,_BV(WDIE)|_BV(WDP3)|_BV(WDP0));
-    outb(WDTCR,_BV(WDIE));  /* For test only: 32 ms timeout */
-
 }
 
 /****************************************************************************/

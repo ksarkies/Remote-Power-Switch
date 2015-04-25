@@ -8,8 +8,8 @@
 *
 * Target platform   : ATMega48
 *
-* Microcontroller settings for the ATMega48 AVR microcontroller as used in the
-master receiver board.
+* Microcontroller settings for the ATMega48 AVR microcontroller as used in
+* the master receiver board.
 */
 /***************************************************************************
  *   Copyright (C) 2011 by Ken Sarkies                                     *
@@ -65,8 +65,15 @@ firmware updates. */
 #define SDI         7
 /*@}*/
 
+#define TCOUNT         TCNT2
+#define TIMER_CONT_REG TCCR2B
+#define TIMER_MASK_REG TIMSK2
+#define TIMER_FLAG_REG TIFR2
+#define TOV            TOV2
+#define TOIE           TOIE2
+
 #define REC_INTERRUPT   INT1_vect
-#define TIMER_INTERRUPT TIMER0_OVF_vect
+#define TIMER_INTERRUPT TIMER2_OVF_vect
 
 /* Change some register names to match up with other AVRs */
 #define WDTCR                   WDTCSR
