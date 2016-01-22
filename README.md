@@ -2,7 +2,12 @@ Remote Power Switch
 -------------------
 
 This small project makes use of Hope RF modules sold by Futurlec and others
-to enable remote switching of power.
+to enable remote switching of low voltage power.
+
+(NOTE: These modules seem to be unobtainable. However similar modules such as
+the ALPHA-TRX433S, a rebadged version of the 433MHz RFM12B, are available.
+The project needs to be redesigned for these and has not been further
+developed.)
 
 The background is a 12V power distribution system in a building which is
 isolated from the grid and uses solar batteries for all power. The low voltage
