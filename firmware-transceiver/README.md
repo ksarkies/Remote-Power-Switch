@@ -16,8 +16,7 @@ The AVR C library rfm12lib by Hansinator, Tixiv and Soeren provides the software
 support for the RFM12 modules. The interrupt driven UART library developed by
 Peter Fleury is also used.
 
-More information is found on:
-www.jiggerjuice.info/electronics/projects/remotecontrol/serial-link-transceiver.html
+More information is found on [Jiggerjuice](www.jiggerjuice.info/electronics/projects/remotecontrol/serial-link-transceiver.html).
 
 The ATMega48 series is used. The USART buffer sizes are:
 ATMega48    128

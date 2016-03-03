@@ -21,9 +21,7 @@ compatible with the ET series of boards. An SPI programming connector is also
 provided in a form compatible with other projects. The vertical version of this
 (or the right angle version mounted underneath) must be used.
 
-More information has been posted on:
-
-www.jiggerjuice.info/electronics/projects/remotecontrol/remote-control-switch.html
+More information has been posted on [Jiggerjuice](www.jiggerjuice.info/electronics/projects/remotecontrol/remote-control-switch.html).
 
 K. Sarkies
 

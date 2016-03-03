@@ -29,14 +29,12 @@ count of the number of each symbol received. A decision is made after 10 symbols
 have arrived by selecting the symbol with the most counts. No more decisions are
 made until a preset delay has elapsed following the last reception.
 
-More information is available on:
-www.jiggerjuice.info/electronics/projects/remotecontrol/remote-control-switch.html
+More information is available on [Jiggerjuice](www.jiggerjuice.info/electronics/projects/remotecontrol/remote-control-switch.html).
 
 The receiver board is designed to take RFM12 transceiver modules so that the
 hardware can double as a serial communications system between two base stations.
 
-More information is available on:
-www.jiggerjuice.info/electronics/projects/remotecontrol/serial-link-transceiver.html
+More information is available on [Jiggerjuice](www.jiggerjuice.info/electronics/projects/remotecontrol/serial-link-transceiver.html).
 
 K. Sarkies
 4 January 2015

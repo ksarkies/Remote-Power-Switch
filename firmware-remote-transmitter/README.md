@@ -9,9 +9,7 @@ as the key is pressed.
 The clock of the ATTiny2313 must be set to internal calibrated 8MHz. The clock
 divide by 8 must be unset.
 
-More information has been posted on:
-
-www.jiggerjuice.info/electronics/projects/remotecontrol/remote-control-switch.html
+More information has been posted on [Jiggerjuice](www.jiggerjuice.info/electronics/projects/remotecontrol/remote-control-switch.html).
 
 K. Sarkies
 

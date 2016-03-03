@@ -10,9 +10,7 @@ transmission. This is a form of maximum likelihood estimator.
 The ATMega48 AVR microcontroller must have 8MHz internal RC oscillator and
 no other fuse bits set except for the serial programming enable.
 
-More information has been posted on:
-
-www.jiggerjuice.info/electronics/projects/remotecontrol/remote-control-switch.html
+More information has been posted on [Jiggerjuice](www.jiggerjuice.info/electronics/projects/remotecontrol/remote-control-switch.html).
 
 K. Sarkies
 
